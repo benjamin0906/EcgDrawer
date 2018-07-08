@@ -22,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView textView3;
     public static TextView textView4;
 
-    ChannelDatas Datas;
+    ChannelSignal Datas;
 
     private static final String s = "com.example.bodnrbenjamin.ecg1";
     private final float[] sinus = new float[100];
@@ -41,8 +41,6 @@ public class MainActivity extends AppCompatActivity {
     DrawView DataCanvas4;
     DrawView DataCanvas5;
 
-
-    private final CircularBuffer CBuffer=new CircularBuffer(8);
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,15 +53,15 @@ public class MainActivity extends AppCompatActivity {
         textView3 = findViewById(R.id.textView3);
         textView4 = findViewById(R.id.textView4);
 
-        DataCanvas1 = (DrawView) findViewById(R.id.drawview);
+        DataCanvas1 = findViewById(R.id.drawview);
         DataCanvas1.setBackgroundColor(Color.GREEN);
-        DataCanvas2 = (DrawView) findViewById(R.id.drawview2);
+        DataCanvas2 = findViewById(R.id.drawview2);
         DataCanvas2.setBackgroundColor(Color.GREEN);
-        DataCanvas3 = (DrawView) findViewById(R.id.drawview3);
+        DataCanvas3 = findViewById(R.id.drawview3);
         DataCanvas3.setBackgroundColor(Color.GREEN);
-        DataCanvas4 = (DrawView) findViewById(R.id.drawview4);
+        DataCanvas4 = findViewById(R.id.drawview4);
         DataCanvas4.setBackgroundColor(Color.GREEN);
-        DataCanvas5 = (DrawView) findViewById(R.id.drawview5);
+        DataCanvas5 = findViewById(R.id.drawview5);
         DataCanvas5.setBackgroundColor(Color.GREEN);
 
         RefreshedData = new int[5][2200];
@@ -90,11 +88,11 @@ public class MainActivity extends AppCompatActivity {
             sinus[looper] = (float) Math.sin(Math.PI /(sinus.length/2)*looper)*mul+mul+10;
         }
 
-        Ch1Drawer = new CurveDrawer(textView4,DataCanvas1);
-        Ch2Drawer = new CurveDrawer(textView4,DataCanvas2);
-        Ch3Drawer = new CurveDrawer(textView4,DataCanvas3);
-        Ch4Drawer = new CurveDrawer(textView4,DataCanvas4);
-        Ch5Drawer = new CurveDrawer(textView4,DataCanvas5);
+        Ch1Drawer = new CurveDrawer(DataCanvas1);
+        Ch2Drawer = new CurveDrawer(DataCanvas2);
+        Ch3Drawer = new CurveDrawer(DataCanvas3);
+        Ch4Drawer = new CurveDrawer(DataCanvas4);
+        Ch5Drawer = new CurveDrawer(DataCanvas5);
         ecg=new UsbEcgHAL(this,s,0x2405,0xB); //TODO:original
         //ecg=new UsbEcgHAL(this,s,0x0461,0x0033);
         ecg.setTextView(textView2);
@@ -166,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
         else
         {
             ecg.StartDataReadThread();
-            //ChannelDatas datas = new ChannelDatas(5000);
+            //ChannelSignal datas = new ChannelSignal(5000);
             //ecg.Read(datas);
         }
     }

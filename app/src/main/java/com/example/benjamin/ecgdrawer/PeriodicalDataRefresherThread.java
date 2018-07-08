@@ -4,7 +4,6 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.widget.TextView;
 
 /**
  * Created by BodnárBenjamin on 2018. 04. 17..
@@ -15,17 +14,17 @@ import android.widget.TextView;
 public class PeriodicalDataRefresherThread extends Thread {
     public Handler handler;
     public Handler mainHandler;
-    private ChannelDatas datas = new ChannelDatas(500);
+    private ChannelSignal EcgChannelSignals = new ChannelSignal(500);
+    public UsbEcgHAL ecg;
+    public volatile int RefreshedData[][];
+
     private CountDownTimer DataRefreshTimer= new CountDownTimer(Long.MAX_VALUE,50) {
         @Override
         public void onTick(long l) {
-            isBusy = true;
-            ecg.Read(datas);//TODO: This line is needed for the normal operation the comment is just for test
-            if(Size[0] != 0) RevisionNumber++;
-            isBusy = false;
+            ecg.Read(EcgChannelSignals);//TODO: This line is needed for the normal operation the comment is just for test
             Message msg = mainHandler.obtainMessage();
             msg.arg1=1;
-            msg.obj = datas;
+            msg.obj = EcgChannelSignals;
             mainHandler.sendMessage(msg);
         }
 
@@ -34,28 +33,12 @@ public class PeriodicalDataRefresherThread extends Thread {
             this.start();
         }
     };
-    public UsbEcgHAL ecg;
-    private int Size[] = new int[5];
-    public volatile int RefreshedData[][];
-    private volatile int RevisionNumber=0;
-    private volatile boolean isBusy=false;
-    public TextView tt;
 
-    public boolean isBusy()
-    {
-        return isBusy;
-    }
-
-    public int GetRevisionNumber()
-    {
-        return RevisionNumber;
-    }
-
-    public void StartDataRefreshTimer()
+    private void StartDataRefreshTimer()
     {
         DataRefreshTimer.start();
     }
-    public void StopDataRefreshTimer()
+    private void StopDataRefreshTimer()
     {
         DataRefreshTimer.cancel();
     }

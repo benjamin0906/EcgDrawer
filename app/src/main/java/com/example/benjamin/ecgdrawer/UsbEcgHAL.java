@@ -33,7 +33,6 @@ public class UsbEcgHAL extends AppCompatActivity {
     private int VendorID;
     private int ProductID;
     byte StartByte = 0x53;
-    byte EndByte = 0x0A;
     byte AskArray[] = new byte[4];
     byte AskCommand = 0x01;
     private PeriodicalDataRefresherThread Thread;
@@ -77,12 +76,12 @@ public class UsbEcgHAL extends AppCompatActivity {
             @Override
             public void handleMessage(Message msg)
             {
-                ChannelDatas Datas = (ChannelDatas) msg.obj;
+                ChannelSignal Datas = (ChannelSignal) msg.obj;
                 Ch1Drawer.DrawDatas(Datas.Channel1Data,Datas.Channel1Size);
-                /*Ch2Drawer.DrawDatas(Datas.Channel1Data,Datas.Channel1Size);
-                Ch3Drawer.DrawDatas(Datas.Channel1Data,Datas.Channel1Size);
-                Ch4Drawer.DrawDatas(Datas.Channel1Data,Datas.Channel1Size);
-                Ch5Drawer.DrawDatas(Datas.Channel1Data,Datas.Channel1Size);*/
+                Ch2Drawer.DrawDatas(Datas.Channel2Data,Datas.Channel2Size);
+                Ch3Drawer.DrawDatas(Datas.Channel3Data,Datas.Channel3Size);
+                Ch4Drawer.DrawDatas(Datas.Channel4Data,Datas.Channel4Size);
+                Ch5Drawer.DrawDatas(Datas.Channel5Data,Datas.Channel5Size);
             }
         };
 
@@ -179,7 +178,16 @@ public class UsbEcgHAL extends AppCompatActivity {
         this.t=t;
     }
 
-    public void Read(ChannelDatas Data)
+    private static final float ScaleFactor = (float)4*(float)1.8/(float)1.4/(float)16777216;
+    private float EcgDataToFloat(int data)
+    {
+        int sData;
+        if(0 != (data&0x800000)) sData=data|0xff000000;
+        else sData=data;
+        return (float) sData*ScaleFactor;
+    }
+
+    public void Read(ChannelSignal Data)
     {
         int BytesWithBulk=0;
         byte temp2[] = new byte[64];
@@ -192,11 +200,16 @@ public class UsbEcgHAL extends AppCompatActivity {
             boolean DSizeH=false;
             int CommandSign=0;
             int DSize=0;
-            int GlobalCounter11=-1;
+            int GlobalCounter11=0;
+            int GlobalCounter12=0;
+            int GlobalCounter13=0;
+            int GlobalCounter14=0;
+            int GlobalCounter15=0;
             int Address=0;
             int looper=0;
             int GlobalLooper=0;
             int looper2;
+            int RawEcgData=0;
             do
             {
                 BytesWithBulk=connection.bulkTransfer(ReadEndpoint,temp2,64,1);
@@ -231,26 +244,38 @@ public class UsbEcgHAL extends AppCompatActivity {
                     {
                         if ((looper % 4) == 0)
                         {
+                            switch (Address)
+                            {
+                                case 0x11:
+                                    Data.Channel1Data[GlobalCounter11]=EcgDataToFloat(RawEcgData);
+                                    GlobalCounter11++;
+                                    RawEcgData=0;
+                                    break;
+                                case 0x12:
+                                    Data.Channel2Data[GlobalCounter12]=EcgDataToFloat(RawEcgData);
+                                    GlobalCounter12++;
+                                    RawEcgData=0;
+                                    break;
+                                case 0x13:
+                                    Data.Channel3Data[GlobalCounter13]=EcgDataToFloat(RawEcgData);
+                                    GlobalCounter13++;
+                                    RawEcgData=0;
+                                    break;
+                                case 0x14:
+                                    Data.Channel4Data[GlobalCounter14]=EcgDataToFloat(RawEcgData);
+                                    GlobalCounter14++;
+                                    RawEcgData=0;
+                                    break;
+                                case 0x15:
+                                    Data.Channel5Data[GlobalCounter15]=EcgDataToFloat(RawEcgData);
+                                    GlobalCounter15++;
+                                    RawEcgData=0;
+                                    break;
+                            }
                             Address = temp2[looper2];
                             GlobalLooper++;
-                            switch (Address)
-                            {
-                                case 0x11:
-                                    GlobalCounter11++;
-                                    Data.Channel1Data[GlobalCounter11]=0;
-                                    break;
-                            }
                         }
-                        else
-                        {
-                            switch (Address)
-                            {
-                                case 0x11:
-                                    Data.Channel1Data[GlobalCounter11] |= (0xFF&(int)temp2[looper2]) << (8 * (3 - (looper % 4)));
-                                    break;
-                                default:
-                            }
-                        }
+                        else RawEcgData |= (0xFF&(int)temp2[looper2]) << (8 * (3 - (looper % 4)));
                         looper++;
                     }
                     looper2++;
@@ -258,13 +283,17 @@ public class UsbEcgHAL extends AppCompatActivity {
 
             } while ((GlobalLooper < DSize || !Header) && BytesWithBulk>=0);
             Data.Channel1Size=GlobalCounter11;
+            Data.Channel2Size=GlobalCounter12;
+            Data.Channel3Size=GlobalCounter13;
+            Data.Channel4Size=GlobalCounter14;
+            Data.Channel5Size=GlobalCounter15;
             while (BytesWithBulk>0) BytesWithBulk=connection.bulkTransfer(ReadEndpoint,temp2,64,2);
         }
         else
         {
             do
             {
-                BytesWithBulk=connection.bulkTransfer(ReadEndpoint,temp2,1,30);
+                BytesWithBulk=connection.bulkTransfer(ReadEndpoint,temp2,1,10);
             }while(BytesWithBulk>0);
         }
 
