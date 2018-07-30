@@ -45,31 +45,31 @@
             android:id="@+id/textView"
             android:layout_width="122dp"
             android:layout_height="55dp"
-            android:layout_marginStart="128dp"
-            android:layout_marginTop="112dp"
+            android:layout_marginStart="48dp"
+            android:layout_marginTop="104dp"
             android:text="TextView"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <Button
-            android:id="@+id/button"
+            android:id="@+id/ConncectButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="40dp"
             android:layout_marginTop="16dp"
-            android:onClick="buttonOnClick"
-            android:text="Button"
+            android:onClick="ConnectButtonOnClick"
+            android:text="Connect"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <Button
-            android:id="@+id/button2"
+            android:id="@+id/StartButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="148dp"
             android:layout_marginTop="16dp"
-            android:onClick="button2OnClick"
-            android:text="Button2"
+            android:onClick="StartButtonOnClick"
+            android:text="Start"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -129,5 +129,18 @@
             android:layout_marginTop="1150dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/LoadButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="44dp"
+            android:layout_marginTop="16dp"
+            android:onClick="LoadButtonOnClick"
+            android:text="Load"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
     </android.support.constraint.ConstraintLayout>
 </ScrollView>

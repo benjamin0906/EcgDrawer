@@ -14,14 +14,20 @@ import android.os.Message;
 public class PeriodicalDataRefresherThread extends Thread {
     public Handler handler;
     public Handler mainHandler;
-    private ChannelSignal EcgChannelSignals = new ChannelSignal(500);
+    private ChannelSignal EcgChannelSignals = new ChannelSignal(470);
     public UsbEcgHAL ecg;
     public volatile int RefreshedData[][];
+    public CurveDrawer Ch1Drawer;
+    public CurveDrawer Ch2Drawer;
+    public CurveDrawer Ch3Drawer;
+    public CurveDrawer Ch4Drawer;
+    public CurveDrawer Ch5Drawer;
 
     private CountDownTimer DataRefreshTimer= new CountDownTimer(Long.MAX_VALUE,50) {
         @Override
         public void onTick(long l) {
-            ecg.Read(EcgChannelSignals);//TODO: This line is needed for the normal operation the comment is just for test
+            ecg.Read(EcgChannelSignals);
+            Ch1Drawer.DrawDatas(EcgChannelSignals.Channel1Data,EcgChannelSignals.Channel1Size);
             Message msg = mainHandler.obtainMessage();
             msg.arg1=1;
             msg.obj = EcgChannelSignals;

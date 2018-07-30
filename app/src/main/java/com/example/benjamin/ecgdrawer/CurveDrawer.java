@@ -1,4 +1,7 @@
 package com.example.benjamin.ecgdrawer;
+
+import android.widget.TextView;
+
 /**
  * Created by BodnárBenjamin on 2018. 04. 15..
  * This object is a complete object that can draw the given raw values from the ECG.
@@ -18,7 +21,7 @@ public class CurveDrawer {
     private float CurrentValue=0;
     private float tVoltageMax;
     private float tVoltageMin;
-
+    public TextView t;
     private DrawView Lines2;
     
     public CurveDrawer(DrawView d)
@@ -41,7 +44,7 @@ public class CurveDrawer {
         Mul1 =(float) DrawViewHeight/(MaxValue-MinValue);
         int looper;
         int Ordinate;
-        int SampleNumber = 1100;
+        int SampleNumber = 10000;
         int looper2=0;
 
         float Rate = (float)DrawViewWidth/(float) SampleNumber;
@@ -55,9 +58,46 @@ public class CurveDrawer {
         {
             /* In this case the signals has to be compressed. */
             float tRate = 1/Rate;
-
-            for(looper=0;looper < Sizes;looper++)
+            t.setText(Float.toString(Rate)+" "+Float.toString(tRate));
+            PostMul =  (tRate*(float)(LineIterator+1))-(int)(tRate*(float)(LineIterator+1));
+            PreMul = 1-PostMul;
+            for(looper=0;looper < Sizes;looper++,looper2++)
             {
+//                if(PrevSampleLooper<=(int)tRate)
+//                {
+//                    CurrentValue += Data[looper];
+//                }
+//                else
+//                {
+//                    CurrentValue = Data[looper]*PostMul;
+//                    CurrentValue /= tRate;
+//                    tVoltageMax = Math.max(tVoltageMax,CurrentValue);
+//                    tVoltageMin = Math.min(tVoltageMin,CurrentValue);
+//                    if(CurrentValue < MaxValue && CurrentValue > MinValue)
+//                    {
+//                        Ordinate= (int) (Mul1*((MaxValue-CurrentValue)));
+//                    }
+//                    else if(CurrentValue >= MaxValue) Ordinate = 0;
+//                    else Ordinate = DrawViewHeight-1;
+//                    Lines2.modifyLineWithoutRefresh(LineIterator, LineIterator, OrdinatePrev, LineIterator+1, Ordinate);
+//                    OrdinatePrev = Ordinate;
+//                    LineIterator++;
+//                    if (LineIterator == LineID)
+//                    {
+//                        LineIterator=0;
+//                        MaxValue=tVoltageMax;
+//                        MinValue=tVoltageMin;
+//                        tVoltageMin = CurrentValue;
+//                        tVoltageMax = CurrentValue;
+//                        looper2=0;
+//
+//                    }
+//                    PostMul =  (tRate*(float)(LineIterator+1))-(float)((int)(tRate*(float)(LineIterator+1)));
+//                    PreMul = 1-PostMul;
+//                    CurrentValue = Data[looper]*PreMul;
+//                    PrevSampleLooper=0;
+//                }
+//                PrevSampleLooper++;
                 PrevSampleLooper++;
                 if((tRate*(float)(LineIterator+1)) <= (float)PrevSampleLooper)
                 {
@@ -85,6 +125,7 @@ public class CurveDrawer {
                     if (LineIterator == LineID)
                     {
                         LineIterator = 0;
+                        //PostMul = (float)1 - (tRate*(float)(1));
                         MaxValue = tVoltageMax;
                         MinValue = tVoltageMin;
                         tVoltageMax = CurrentValue;

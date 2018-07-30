@@ -1,6 +1,6 @@
 package com.example.benjamin.ecgdrawer;
 
-/**
+/*
  * Created by BodnárBenjamin on 2018. 04. 05..
  * This object does the whole communicaton between the ECG and the android device.
  * There is also implemented a thread on that a counter timer works, that read for new data periodically.
@@ -57,6 +57,7 @@ public class UsbEcgHAL extends AppCompatActivity {
     public CurveDrawer Ch3Drawer;
     public CurveDrawer Ch4Drawer;
     public CurveDrawer Ch5Drawer;
+    private boolean Saving;
 
     public UsbEcgHAL(Context c, String s, int VID, int PID)
     {
@@ -77,14 +78,13 @@ public class UsbEcgHAL extends AppCompatActivity {
             public void handleMessage(Message msg)
             {
                 ChannelSignal Datas = (ChannelSignal) msg.obj;
-                Ch1Drawer.DrawDatas(Datas.Channel1Data,Datas.Channel1Size);
+                /*Ch1Drawer.DrawDatas(Datas.Channel1Data,Datas.Channel1Size);
                 Ch2Drawer.DrawDatas(Datas.Channel2Data,Datas.Channel2Size);
                 Ch3Drawer.DrawDatas(Datas.Channel3Data,Datas.Channel3Size);
                 Ch4Drawer.DrawDatas(Datas.Channel4Data,Datas.Channel4Size);
-                Ch5Drawer.DrawDatas(Datas.Channel5Data,Datas.Channel5Size);
+                Ch5Drawer.DrawDatas(Datas.Channel5Data,Datas.Channel5Size);*/
             }
         };
-
     }
     public boolean Initialize()
     {
@@ -303,19 +303,26 @@ public class UsbEcgHAL extends AppCompatActivity {
         if(connection != null) connection.close();
         //manager.cl
     }
-    public void StartDataReadThread()
+    public void StartDataReadThread(boolean SavingNeeded)
     {
+        if(SavingNeeded)
+        {
+            Saving = true;
+        }
         Thread = new PeriodicalDataRefresherThread();
         Thread.ecg = this;
-        //Thread.tt = t;
-        //Thread.tt.append("ztr");
         Thread.mainHandler=ReturnHandler;
-        //t.append("qwe");
         Thread.RefreshedData = RefreshedData;
+        Thread.Ch1Drawer=this.Ch1Drawer;
+
         Thread.start();
         while (Thread.handler == null);
         Message msg = Thread.handler.obtainMessage();
         msg.arg1=1;
         Thread.handler.sendMessage(msg);
+    }
+    public void StopDataReadThread()
+    {
+        Thread.stop();
     }
 }
