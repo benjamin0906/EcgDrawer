@@ -25,6 +25,7 @@ import android.widget.TextView;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.logging.FileHandler;
 
 public class UsbEcgHAL extends AppCompatActivity {
     private Context context;
@@ -58,8 +59,9 @@ public class UsbEcgHAL extends AppCompatActivity {
     public CurveDrawer Ch4Drawer;
     public CurveDrawer Ch5Drawer;
     private boolean Saving;
+    private FileDriver FileHandler;
 
-    public UsbEcgHAL(Context c, String s, int VID, int PID)
+    public UsbEcgHAL(Context c, String s, int VID, int PID, FileDriver FH)
     {
         context=c;
         manager  = (UsbManager) context.getSystemService(USB_SERVICE);
@@ -69,7 +71,7 @@ public class UsbEcgHAL extends AppCompatActivity {
         AskArray[0]=StartByte;
         AskArray[1]=AskCommand;
         RefreshedData = new int[5][2200];
-
+        FileHandler = FH;
 
 
         ReturnHandler = new Handler()
@@ -78,6 +80,7 @@ public class UsbEcgHAL extends AppCompatActivity {
             public void handleMessage(Message msg)
             {
                 ChannelSignal Datas = (ChannelSignal) msg.obj;
+                FileHandler.Write(Datas.Channel1Data,Datas.Channel1Size);
                 /*Ch1Drawer.DrawDatas(Datas.Channel1Data,Datas.Channel1Size);
                 Ch2Drawer.DrawDatas(Datas.Channel2Data,Datas.Channel2Size);
                 Ch3Drawer.DrawDatas(Datas.Channel3Data,Datas.Channel3Size);
@@ -323,6 +326,7 @@ public class UsbEcgHAL extends AppCompatActivity {
     }
     public void StopDataReadThread()
     {
-        Thread.stop();
+        FileHandler.Close();
+        Thread.stop(); //TODO: This is not working, if this is executed the app is crashed.
     }
 }

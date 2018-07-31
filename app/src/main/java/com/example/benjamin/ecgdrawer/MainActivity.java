@@ -1,35 +1,32 @@
 package com.example.benjamin.ecgdrawer;
 
-import android.app.Activity;
 import android.app.Dialog;
-import android.app.ListActivity;
-import android.app.Notification;
-import android.content.Intent;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
-import android.util.TimingLogger;
 import android.view.View;
-import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.TextView;
-import com.example.benjamin.ecgdrawer.FileDriver;
+
 
 import java.io.File;
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+    private final String LoadString = "Load";
+    private final String ClearString = "Clear";
+    private final String StartString = "Start";
+    private final String StopString = "Stop";
+    private final String ConnectString = "Connect";
+    private final String DisconnectString = "Disconnect";
+    private final String FilesString = "Files";
+
     private Button ConnectButtonObj;
     private Button StartButtonObj;
     private Button LoadButtonObj;
@@ -37,7 +34,6 @@ public class MainActivity extends AppCompatActivity {
     private TextView textView2;
     private TextView textView3;
     public static TextView textView4;
-    private ListView listView;
 
     ChannelSignal Datas;
 
@@ -52,8 +48,7 @@ public class MainActivity extends AppCompatActivity {
     public CurveDrawer Ch4Drawer;
     public CurveDrawer Ch5Drawer;
 
-    private float[] DatasFromFile;
-    private String[] Files;
+    private float[] DataFromFile;
 
     DrawView DataCanvas1;
     DrawView DataCanvas2;
@@ -66,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
     private boolean Started     =   false;
     private boolean Loaded      =   true;
 
-private TimingLogger timings;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -94,7 +88,7 @@ private TimingLogger timings;
 
         RefreshedData = new int[5][2200];
 
-        FileHandler = new FileDriver(this,textView4);
+        FileHandler = new FileDriver(this,60000,textView4);
 
 
         DisplayMetrics dm=new DisplayMetrics();
@@ -112,6 +106,10 @@ private TimingLogger timings;
         DataCanvas5.requestLayout();
 
         for(int looper=0;looper<sinus.length;looper++) sinus[looper] = (float) Math.sin(2*Math.PI /(sinus.length)*looper);
+        sinus[0]=(float)11.1111;
+        //FileHandler.Open();
+        //FileHandler.Write(sinus,sinus.length);
+        //FileHandler.Close();
 
         Ch1Drawer = new CurveDrawer(DataCanvas1);
         Ch1Drawer.t=textView4;
@@ -119,7 +117,7 @@ private TimingLogger timings;
         Ch3Drawer = new CurveDrawer(DataCanvas3);
         Ch4Drawer = new CurveDrawer(DataCanvas4);
         Ch5Drawer = new CurveDrawer(DataCanvas5);
-        ecg=new UsbEcgHAL(this,s,0x2405,0xB); //TODO:original
+        ecg=new UsbEcgHAL(this,s,0x2405,0xB, FileHandler); //TODO:original
         ecg.t2=textView4;
         //ecg=new UsbEcgHAL(this,s,0x0461,0x0033);
         ecg.setTextView(textView2);
@@ -130,87 +128,42 @@ private TimingLogger timings;
         ecg.Ch4Drawer=Ch4Drawer;
         ecg.Ch5Drawer=Ch5Drawer;
     }
-    /*
-    private int HexStringByteArrayToInt(byte array[])
-    {
-        int ret=0;
-        int temp=0;
-        for(int looper = 0; looper < array.length; looper++)
-        {
-            if((array[looper] >= 0x30) && (array[looper] <=0x39))
-            {
-                temp=array[looper]-0x30;
-            }
-            else if((array[looper] >= 0x41) && (array[looper] <=0x46))
-            {
-                temp=array[looper]-55;
-            }
-            else if((array[looper] >= 0x61) && (array[looper] <=0x66))
-            {
-                temp=array[looper]-87;
-            }
-            ret+=temp<<(looper*4);
-            //ret+=temp;
-        }
-        return ret;
-    }
-    private int HexCharToInt(byte data)
-    {
-        int ret=0;
-        if(data >= 0x30 && data <=0x39)
-        {
-            ret=data-0x30;
-        }
-        else if(data >= 0x41 && data <=0x46)
-        {
-            ret=data-55;
-        }
-        else if(data >= 0x61 && data <=0x66)
-        {
-            ret=data-87;
-        }
-        return ret;
-    }*/
-
 
     public void StartButtonOnClick(View v)
     {
         if(Started) /* Measure has to be stoped */
         {
             ecg.StopDataReadThread();
+            /*FileHandler.Open();
             FileHandler.Write(sinus,sinus.length);
-            FileHandler.Close();
-            StartButtonObj.setText("Start");
+            FileHandler.RefreshFileList();
+            FileHandler.Close();*/
+            StartButtonObj.setText(StartString);
+            Started=false;
         }
         else /* Measure has to be started */
         {
-            Ch1Drawer.DrawDatas(sinus,sinus.length);
-            StartButtonObj.setText("Stop");
+            //Ch1Drawer.DrawDatas(sinus,sinus.length);
+            FileHandler.Open();
+            ecg.StartDataReadThread(true);
+            StartButtonObj.setText(StopString);
             Started = true;
         }
     }
     public void ConnectButtonOnClick(View v)
     {
-        isConnected=true;
-        if(!isConnected)
+        if(isConnected)
         {
-            isConnected=ecg.Initialize();//TODO
-            if(isConnected)
-            {
-                ConnectButtonObj.setText("DISCONNECT");
-                FileHandler.Open();
-                //StartDataRefreshTimer();//TODO
-            }
+            ConnectButtonObj.setText(ConnectString);
         }
         else
         {
-            //ecg.StartDataReadThread(SaveCheckBox.isChecked());
-            //ChannelSignal datas = new ChannelSignal(5000);
-            //ecg.Read(datas);
-            textView4.setText(Integer.toHexString(Float.floatToIntBits(sinus[50])));
-            //FileHandler.Write(sinus,sinus.length);
-            //FileHandler.Close();
-            ConnectButtonObj.setText("Connect");
+            isConnected=ecg.Initialize();
+            if(isConnected)
+            {
+                ConnectButtonObj.setText(DisconnectString);
+                //StartDataRefreshTimer();
+            }
         }
     }
 
@@ -218,19 +171,20 @@ private TimingLogger timings;
     {
         if(Loaded) /* Loading a file from the storage */
         {
-            LoadButtonObj.setText("Clear");
+            LoadButtonObj.setText(ClearString);
 
             final Dialog FileListDialog = new Dialog(MainActivity.this);
             FileListDialog.setContentView(R.layout.dialog);
-            ListView FileListView = (ListView ) FileListDialog.findViewById(R.id.FileListView);
+            ListView FileListView = FileListDialog.findViewById(R.id.FileListView);
 
             /* Get the files */
+            FileHandler.RefreshFileList();
             File[] TemporaryFileContainer = FileHandler.GetFiles();
             final String[] Files = new String[TemporaryFileContainer.length];
             for(int looper=0; looper<TemporaryFileContainer.length; looper++) Files[looper] = TemporaryFileContainer[looper].getName();
 
-            final List<String> fruits_list = new ArrayList<String>(Arrays.asList(Files));
-            final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, fruits_list);
+            final List<String> fruits_list = new ArrayList<>(Arrays.asList(Files));
+            final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, fruits_list);
 
             FileListView.setAdapter(arrayAdapter);
 
@@ -242,20 +196,23 @@ private TimingLogger timings;
                     textView3.setText(Files[position]);
                     if(0==FileHandler.Open(Files[position]))
                     {
-                        Float[] a= new Float[3];
-                        if(0!=FileHandler.Read(a)) textView2.setText("SZAR A FILLE");
+                        DataFromFile = FileHandler.Read();
+                        if(DataFromFile.length!=0)
+                        {
+                            //TODO: Some error handling is needed if the file is wrong!!
+                        }
                     }
                     FileListDialog.cancel();
                 }
             });
 
             FileListDialog.setCancelable(true);
-            FileListDialog.setTitle("Files");
+            FileListDialog.setTitle(FilesString);
             FileListDialog.show();
         }
         else /* Clear this file */
         {
-            LoadButtonObj.setText("Load");
+            LoadButtonObj.setText(LoadString);
         }
     }
 
