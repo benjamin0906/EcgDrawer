@@ -27,12 +27,15 @@ public class FileDriver
     private File[] FilesInFolder;
     private final String ConstFileID="Ecg Data\n";
     private float[] DataBuffer;
+    private int[] TEST_DataBuffer;
     private int DataBufferCounter;
+    private int TEST_DataBufferCounter;
     public FileDriver(Context c,int BufferSize,TextView textView)
     {
         MainContext=c;
         t=textView;
         DataBuffer = new float[BufferSize];
+        TEST_DataBuffer = new int[6*BufferSize];
         DataBufferCounter=0;
     }
     public int Open()
@@ -92,6 +95,78 @@ public class FileDriver
         {
             ret = -1;
         }
+        return ret;
+    }
+    public int TEST_Close()
+    {
+        int ret=0;
+        try
+        {
+            for(int looper=0;looper<TEST_DataBufferCounter;looper++)
+            {
+                WorkingFileWriter.write(Integer.toHexString(TEST_DataBuffer[looper])+"\n");
+                DataBuffer[looper]=0;
+            }
+            DataBufferCounter=0;
+            WorkingFileWriter.flush();
+            WorkingFileWriter.close();
+            WorkingFileReader.close();
+            WorkingInputStream.close();
+            WorkingOutputStream.close();
+        }
+        catch (IOException e)
+        {
+            ret = -1;
+        }
+        return ret;
+    }
+    public int TEST_Close2()
+    {
+        int ret=0;
+        try
+        {
+            for(int looper=0;looper<DataBufferCounter;looper++)
+            {
+                WorkingFileWriter.write(Float.toString(DataBuffer[looper])+"\t");
+                WorkingFileWriter.write(Integer.toHexString(TEST_DataBuffer[looper])+"\t");
+                WorkingFileWriter.write(Integer.toHexString(TEST_DataBuffer[looper+1])+"\t");
+                WorkingFileWriter.write(Integer.toHexString(TEST_DataBuffer[looper+2])+"\t");
+                WorkingFileWriter.write(Integer.toHexString(TEST_DataBuffer[looper+3])+"\t");
+                WorkingFileWriter.write(Integer.toHexString(TEST_DataBuffer[looper+4])+"\t");
+                WorkingFileWriter.write(Integer.toHexString(TEST_DataBuffer[looper+5])+"\n");
+                DataBuffer[looper]=0;
+            }
+            DataBufferCounter=0;
+            WorkingFileWriter.flush();
+            WorkingFileWriter.close();
+            WorkingFileReader.close();
+            WorkingInputStream.close();
+            WorkingOutputStream.close();
+        }
+        catch (IOException e)
+        {
+            ret = -1;
+        }
+        return ret;
+    }
+    public int TEST_Write(int[] Data, int Size)
+    {
+        int ret=0;
+        //try
+        {
+            for(int looper = 0; looper < Size; looper++)
+            {
+                //ret = (Float.floatToIntBits(Data[looper]));
+                //WorkingFileWriter.write(Integer.toHexString(Float.floatToIntBits(Data[looper]))+"\n");
+                TEST_DataBuffer[TEST_DataBufferCounter]=Data[looper];
+                TEST_DataBufferCounter++;
+                //t.setText(Integer.toString(DataBufferCounter));
+            }
+        }
+        /*catch (IOException e)
+        {
+            ret =-1;
+        }*/
         return ret;
     }
     public int Write(float[] Data, int Size)

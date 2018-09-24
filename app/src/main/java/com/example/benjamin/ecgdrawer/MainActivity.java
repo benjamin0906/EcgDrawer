@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -88,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
 
         RefreshedData = new int[5][2200];
 
-        FileHandler = new FileDriver(this,60000,textView4);
+        FileHandler = new FileDriver(this,200000,textView4);
 
 
         DisplayMetrics dm=new DisplayMetrics();
@@ -120,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
         ecg=new UsbEcgHAL(this,s,0x2405,0xB, FileHandler); //TODO:original
         ecg.t2=textView4;
         //ecg=new UsbEcgHAL(this,s,0x0461,0x0033);
-        ecg.setTextView(textView2);
+        ecg.setTextView(textView3);
         ecg.t2 = textView4;
         ecg.Ch1Drawer=Ch1Drawer;
         ecg.Ch2Drawer=Ch2Drawer;
@@ -134,8 +135,8 @@ public class MainActivity extends AppCompatActivity {
         if(Started) /* Measure has to be stoped */
         {
             ecg.StopDataReadThread();
-            /*FileHandler.Open();
-            FileHandler.Write(sinus,sinus.length);
+            //FileHandler.Open();
+            /*FileHandler.Write(sinus,sinus.length);
             FileHandler.RefreshFileList();
             FileHandler.Close();*/
             StartButtonObj.setText(StartString);
@@ -145,13 +146,14 @@ public class MainActivity extends AppCompatActivity {
         {
             //Ch1Drawer.DrawDatas(sinus,sinus.length);
             FileHandler.Open();
-            ecg.StartDataReadThread(true);
+            ecg.StartDataReadThread(false);
             StartButtonObj.setText(StopString);
             Started = true;
         }
     }
     public void ConnectButtonOnClick(View v)
     {
+        Log.d("EcgDrawer", "Connect button is clicked");
         if(isConnected)
         {
             ConnectButtonObj.setText(ConnectString);
@@ -169,6 +171,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void LoadButtonOnClick(View v)
     {
+        Log.d("EcgDrawer", "Load button is clicked");
         if(Loaded) /* Loading a file from the storage */
         {
             LoadButtonObj.setText(ClearString);

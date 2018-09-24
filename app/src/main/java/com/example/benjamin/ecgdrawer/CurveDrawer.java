@@ -1,5 +1,6 @@
 package com.example.benjamin.ecgdrawer;
 
+import android.util.Log;
 import android.widget.TextView;
 
 /**
@@ -58,7 +59,7 @@ public class CurveDrawer {
         {
             /* In this case the signals has to be compressed. */
             float tRate = 1/Rate;
-            t.setText(Float.toString(Rate)+" "+Float.toString(tRate));
+            //Log.d("EcgDrawer", "bizbasz");
             PostMul =  (tRate*(float)(LineIterator+1))-(int)(tRate*(float)(LineIterator+1));
             PreMul = 1-PostMul;
             for(looper=0;looper < Sizes;looper++,looper2++)
