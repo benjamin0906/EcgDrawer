@@ -9,6 +9,7 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 
 public class WorkingThread extends Thread
 {
@@ -40,8 +41,8 @@ public class WorkingThread extends Thread
     private float[] ResultArray3;
     private float[] ResultArray4;
     private float[] ResultArray5;
-    private float RunnerAverageNumerator = 0;
-    private int RunnerAverageDenominator = 0;
+    private int MaxDebounce = 0;
+    private int RWaveCounter = 0;
 
     public WorkingThread(Context c, Handler handler)
     {
@@ -145,7 +146,7 @@ public class WorkingThread extends Thread
 
                         break;
                     case 1:
-                        Log.d("---WorkingThread---", "Calculating...");
+                        //Log.d("---WorkingThread---", "Calculating...");
                         int looper2;
                         float LocalMax = 0;
                         int LocalPlace=0;
@@ -280,6 +281,7 @@ public class WorkingThread extends Thread
 
                                 for(int looper3=0;looper3<GivenData;looper3++)
                                 {
+                                    RWaveCounter++;
                                     System.arraycopy(Phase2Prev,0,Phase2Prev,1,Phase2Prev.length-1);
                                     Phase2Prev[0] = ResultArray[looper2+1-GivenData+looper3];
                                     ResultArray3[looper2+1-GivenData+looper3] =(float) Math.pow(2*Phase2Prev[0]+Phase2Prev[1]-Phase2Prev[3]-2*Phase2Prev[4],2);
@@ -290,7 +292,7 @@ public class WorkingThread extends Thread
                                     Phase4PrevFirst[0] = ResultArray3[looper2+1-GivenData+looper3];
                                     ResultArray4[looper2+1-GivenData+looper3] /= 10;//*/
 
-                                    //if(ResultArray4[looper2+1-GivenData+looper3] > MaxValue) MaxValue=ResultArray4[looper2+1-GivenData+looper3];
+                                    if(ResultArray4[looper2+1-GivenData+looper3] > MaxValue) MaxValue=ResultArray4[looper2+1-GivenData+looper3];
                                     if(Debouncing)
                                     {
                                         if(ResultArray[looper2+1-GivenData+looper3] >= LocalMax)
@@ -298,25 +300,35 @@ public class WorkingThread extends Thread
                                             LocalPlace = looper2+1-GivenData+looper3;
                                             LocalMax = ResultArray4[looper2+1-GivenData+looper3];
                                         }
-                                        if(DebounceCounter < 120) DebounceCounter++;
+                                        if(DebounceCounter < 600) DebounceCounter++;
                                         else
                                         {
-                                            RunnerAverageNumerator += ResultArray4[LocalPlace];
-                                            MaxValue = RunnerAverageNumerator/(float)(++RunnerAverageDenominator);
+                                            Log.d("---WorkingThread---","Time: "+Long.toString(System.currentTimeMillis()));
+                                            MaxDebounce = 0;
                                             ResultArray5[LocalPlace] = 1;
                                             Debouncing = false;
                                             Message m = ReturnHandler.obtainMessage();
                                             m.obj = ResultArray4;
                                             m.arg1 = 3;
+                                            m.arg2 = RWaveCounter;
                                             ReturnHandler.sendMessage(m);
+                                            RWaveCounter = 0;
                                         }
                                     }
-                                    else if(ResultArray4[looper2+1-GivenData+looper3] >MaxValue*0.4)
+                                    else if(ResultArray4[looper2+1-GivenData+looper3] >MaxValue*0.5)
                                     {
                                         Debouncing = true;
                                         DebounceCounter = 0;
                                         LocalMax = ResultArray[looper2+1-GivenData+looper3];
                                         LocalPlace = looper2+1-GivenData+looper3;
+                                    }
+                                    else {
+                                        MaxDebounce++;
+                                        if(MaxDebounce > 6000)
+                                        {
+                                            MaxValue = 0;
+                                            MaxDebounce = 0;
+                                        }
                                     }
                                 }//*/
                             }

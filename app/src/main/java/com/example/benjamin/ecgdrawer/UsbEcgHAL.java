@@ -40,7 +40,6 @@ public class UsbEcgHAL extends AppCompatActivity {
     byte AskCommand = 0x01;
     private PeriodicalDataRefresherThread Thread;
 
-
     private PendingIntent       mPermissionIntent;
     private UsbManager          manager;
     private UsbDevice           device                =   null;
@@ -50,9 +49,7 @@ public class UsbEcgHAL extends AppCompatActivity {
     private UsbEndpoint         WriteEndpoint       =   null;
     private UsbEndpoint         ReadEndpoint        =   null;
     private UsbDeviceConnection connection  =   null;
-
     private TextView t;
-
     public volatile  int[][] RefreshedData;
     public TextView t2;
     public CurveDrawer Ch1Drawer;
@@ -62,13 +59,12 @@ public class UsbEcgHAL extends AppCompatActivity {
     public CurveDrawer Ch5Drawer;
     private boolean Saving;
     private FileDriver FileHandler;
-
-    private int PrevAddress=0;
-    private byte Prevs[] = new byte[12];
-
     private WorkingThread RWaveDetectorThread;
-    private int PrevRawData = 0;
-private boolean asd = false;
+    private boolean asd = false;
+    byte TEST_temp2[] = {(0x53), (0x2), (0x8),(0x0),(0x14), (byte) 0xFE,(0xF),(0x53),(0x15), (byte) 0xFD, (byte) 0xD3, (byte) 0xAB, (byte) 0x80,(0x0),(0x0),(0x0),(0x11), (byte) 0xFF, (byte) 0xFF, (byte) 0xCF,(0x12), (byte) 0xFF, (byte) 0xFF, (byte) 0xFA,(0x13), (byte) 0xFF, (byte) 0xFF, (byte) 0xF3,(0x14), (byte) 0xFE,(0xB), (byte) 0xE7,(0x15), (byte) 0xFD, (byte) 0xD0, (byte) 0x99, (byte) 0x80,(0x0),(0x0),(0x0),(0x11), (byte) 0xFF, (byte) 0xFF, (byte) 0xCA,(0x12), (byte) 0xFF, (byte) 0xFF, (byte) 0xFA,(0x13), (byte) 0xFF, (byte) 0xFF, (byte) 0xFA,(0x14), (byte) 0xFE,(0x8),(0x17),(0x15), (byte) 0xFD, (byte) 0xCD,(0x24), (byte) 0x80,(0x0),(0x0)};
+    byte TEST_temp3[] = {(0x11), (0x8),(0x0),(0x14), (byte) 0x12,(0xF),(0x53),(0x15), (byte) 0x13, (byte) 0xD3, (byte) 0xAB, (byte) 0x80,(0x14),(0x0),(0x0),(0x11), (byte) 0x15, (byte) 0xFF, (byte) 0xCF,(0x12), (byte) 0x80, (byte) 0xFF, (byte) 0xFA,(0x13), (byte) 0x11, (byte) 0xFF, (byte) 0xF3,(0x14), (byte) 0x12,(0xB), (byte) 0xE7,(0x15), (byte) 0x13, (byte) 0xD0, (byte) 0x99, (byte) 0x80,(0x14),(0x0),(0x0),(0x11), (byte) 0x15, (byte) 0xFF, (byte) 0xCA,(0x12), (byte) 0x80, (byte) 0xFF, (byte) 0xFA,(0x13), (byte) 0x11, (byte) 0xFF, (byte) 0xFA,(0x14), (byte) 0x12,(0x8),(0x17),(0x15), (byte) 0x13, (byte) 0xCD,(0x24), (byte) 0x80,(0x14),(0x0),0x0};
+    boolean TEST_BOOL = false;
+
     public UsbEcgHAL(Context c, String s, int VID, int PID, FileDriver FH)
     {
         context=c;
@@ -80,9 +76,6 @@ private boolean asd = false;
         AskArray[1]=AskCommand;
         RefreshedData = new int[5][2200];
         FileHandler = FH;
-        ;
-
-
         ReturnHandler = new Handler()
         {
             @Override
@@ -104,8 +97,8 @@ private boolean asd = false;
                     case 2:
                         break;
                     case 3:
-                        t.setText(Boolean.toString(asd));
-                        asd = !asd;
+                        t.setText("HRT: "+Float.toString(60*2000/((float)msg.arg2)));
+                        //asd = !asd;
                         break;
                 }
 
@@ -403,6 +396,7 @@ private boolean asd = false;
             boolean Header=false;
             boolean StartSign=false;
             boolean DSizeH=false;
+            boolean error = false;
             int CommandSign=0;
             int DSize=0;
             int GlobalCounter11=0;
@@ -420,6 +414,13 @@ private boolean asd = false;
             do
             {
                 BytesWithBulk=connection.bulkTransfer(ReadEndpoint,temp2,63,1);
+                /*if(!TEST_BOOL)
+                {
+                    temp2 = TEST_temp2;
+                    TEST_BOOL = true;
+                }
+                else temp2 = TEST_temp3;
+                BytesWithBulk=63;//*/
                 looper2=0;
                 while (BytesWithBulk > looper2)
                 {
@@ -455,108 +456,134 @@ private boolean asd = false;
                             {
                                 case 0x11:
                                     Data.Channel1Data[GlobalCounter11]=EcgDataToFloat(RawEcgData);
-                                    /*if(Data.Channel1Data[GlobalCounter11] >= 0.01)
-                                    {
-                                        Log.d("EcgDrawer", Integer.toHexString(0xff&(int)Prevs[11])+" "+
-                                                Integer.toHexString(0xff&(int)Prevs[10])+" "+
-                                                Integer.toHexString(0xff&(int)Prevs[9])+" "+
-                                                Integer.toHexString(0xff&(int)Prevs[8])+" "+
-                                                Integer.toHexString(0xff&(int)Prevs[7])+" "+
-                                                Integer.toHexString(0xff&(int)Prevs[6])+" "+
-                                                Integer.toHexString(0xff&(int)Prevs[5])+" "+
-                                                Integer.toHexString(0xff&(int)Prevs[4])+" "+
-                                                Integer.toHexString(0xff&(int)Prevs[3])+" "+
-                                                Integer.toHexString(0xff&(int)Prevs[2])+" "+
-                                                Integer.toHexString(0xff&(int)Prevs[1])+" "+
-                                                Integer.toHexString(0xff&(int)Prevs[0])+" "+Integer.toHexString(Address)+Integer.toHexString(RawEcgData));
-                                    }
-                                    else if(Data.Channel1Data[GlobalCounter11] <= -0.01)
-                                    {
-                                        Log.d("EcgDrawer", Integer.toHexString(0xff&(int)Prevs[11])+" "+
-                                                Integer.toHexString(0xff&(int)Prevs[10])+" "+
-                                                Integer.toHexString(0xff&(int)Prevs[9])+" "+
-                                                Integer.toHexString(0xff&(int)Prevs[8])+" "+
-                                                Integer.toHexString(0xff&(int)Prevs[7])+" "+
-                                                Integer.toHexString(0xff&(int)Prevs[6])+" "+
-                                                Integer.toHexString(0xff&(int)Prevs[5])+" "+
-                                                Integer.toHexString(0xff&(int)Prevs[4])+" "+
-                                                Integer.toHexString(0xff&(int)Prevs[3])+" "+
-                                                Integer.toHexString(0xff&(int)Prevs[2])+" "+
-                                                Integer.toHexString(0xff&(int)Prevs[1])+" "+
-                                                Integer.toHexString(0xff&(int)Prevs[0])+" "+Integer.toHexString(Address)+Integer.toHexString(RawEcgData));
-                                    }*/
                                     GlobalCounter11++;
-                                    RawEcgData=0;
                                     break;
                                 case 0x12:
                                     Data.Channel2Data[GlobalCounter12]=EcgDataToFloat(RawEcgData);
                                     GlobalCounter12++;
-                                    RawEcgData=0;
                                     break;
                                 case 0x13:
                                     Data.Channel3Data[GlobalCounter13]=EcgDataToFloat(RawEcgData);
                                     GlobalCounter13++;
-                                    RawEcgData=0;
                                     break;
                                 case 0x14:
                                     Data.Channel4Data[GlobalCounter14]=EcgDataToFloat(RawEcgData);
                                     GlobalCounter14++;
-                                    RawEcgData=0;
                                     break;
                                 case 0x15:
                                     Data.Channel5Data[GlobalCounter15]=EcgDataToFloat(RawEcgData);
                                     GlobalCounter15++;
-                                    RawEcgData=0;
                                     break;
                                     default:
                                         if((0xff&Address) != 0x80)
                                         {
                                             if(!((0xff&Address) == 0x0 && GlobalLooper == 0))
                                             {
-                                                looper--;
+                                                if(looper2 < BytesWithBulk-1)
+                                                {
+                                                    switch (temp2[looper2+1])
+                                                    {
+                                                        case 0x11:
+                                                            if(looper2 < BytesWithBulk -1-4) {
+                                                                if (temp2[looper2 + 1 + 4] == 0x12) {
+                                                                    looper2++;
+                                                                    looper -= 4;
+                                                                } else looper--;
+                                                            }
+                                                            else {
+                                                                if (temp2[looper2 + 1 - 4] == 0x80) {
+                                                                    looper2++;
+                                                                    looper -= 4;
+                                                                } else looper--;
+                                                            }
+                                                            break;
+                                                        case 0x12:
+                                                            if(looper2 < BytesWithBulk -1-4) {
+                                                                if (temp2[looper2 + 1 + 4] == 0x13) {
+                                                                    looper2++;
+                                                                    looper -= 4;
+                                                                } else looper--;
+                                                            }
+                                                            else {
+                                                                if (temp2[looper2 + 1 - 4] == 0x11) {
+                                                                    looper2++;
+                                                                    looper -= 4;
+                                                                } else looper--;
+                                                            }
+                                                            break;
+                                                        case 0x13:
+                                                            if(looper2 < BytesWithBulk -1-4) {
+                                                                if (temp2[looper2 + 1 + 4] == 0x14) {
+                                                                    looper2++;
+                                                                    looper -= 4;
+                                                                } else looper--;
+                                                            }
+                                                            else {
+                                                                if (temp2[looper2 + 1 - 4] == 0x12) {
+                                                                    looper2++;
+                                                                    looper -= 4;
+                                                                } else looper--;
+                                                            }
+                                                            break;
+                                                        case 0x14:
+                                                            if(looper2 < BytesWithBulk -1-4) {
+                                                                if (temp2[looper2 + 1 + 4] == 0x15) {
+                                                                    looper2++;
+                                                                    looper -= 4;
+                                                                } else looper--;
+                                                            }
+                                                            else {
+                                                                if (temp2[looper2 + 1 - 4] == 0x13) {
+                                                                    looper2++;
+                                                                    looper -= 4;
+                                                                } else looper--;
+                                                            }
+                                                            break;
+                                                        case 0x15:
+                                                            if(looper2 < BytesWithBulk -1-4) {
+                                                                if (temp2[looper2 + 1 + 4] == 0x80) {
+                                                                    looper2++;
+                                                                    looper -= 4;
+                                                                } else looper--;
+                                                            }
+                                                            else {
+                                                                if (temp2[looper2 + 1 - 4] == 0x14) {
+                                                                    looper2++;
+                                                                    looper -= 4;
+                                                                } else looper--;
+                                                            }
+                                                            break;
+                                                        case (byte) 0x80:
+                                                            if(looper2 < BytesWithBulk -1-4) {
+                                                                if (temp2[looper2 + 1 + 4] == 0x11) {
+                                                                    looper2++;
+                                                                    looper -= 4;
+                                                                } else looper--;
+                                                            }
+                                                            else {
+                                                                if (temp2[looper2 + 1 - 4] == 0x15) {
+                                                                    looper2++;
+                                                                    looper -= 4;
+                                                                } else looper--;
+                                                            }
+                                                            break;
+                                                            default:
+                                                                looper--;
+                                                    }
+                                                }
                                             }
                                         }
-                                        /*if((0xff&Address) != 0x80 && (0xff&Address) != 0x0)
-                                        {
-                                            Log.d("EcgDrawer", "Add:"+Integer.toHexString(0xff&Address) + " Raw:"+Integer.toHexString(RawEcgData)+" "
-                                                    + Integer.toHexString(0xff&Prevs[11]) + " "
-                                                    + Integer.toHexString(0xff&Prevs[10]) + " "
-                                                    + Integer.toHexString(0xff&Prevs[9]) + " "
-                                                    + Integer.toHexString(0xff&Prevs[8]) + " "
-                                                    + Integer.toHexString(0xff&Prevs[7]) + " "
-                                                    + Integer.toHexString(0xff&Prevs[6]) + " "
-                                                    + Integer.toHexString(0xff&Prevs[5]) + " "
-                                                    + Integer.toHexString(0xff&Prevs[4]) + " "
-                                                    + Integer.toHexString(0xff&Prevs[3]) + " "
-                                                    + Integer.toHexString(0xff&Prevs[2]) + " "
-                                                    + Integer.toHexString(0xff&Prevs[1]) + " "
-                                                    + Integer.toHexString(0xff&Prevs[0]));
-                                        }*/
-                                        RawEcgData=0;
-                                        //TODO: Ki kell találni, hogy mi legyen a RawEcgData, ha elcsúszott az adat és ide belépünk
-
                             }
-                            PrevAddress=Address;
-                            Address = temp2[looper2];
+                            RawEcgData=0;
+                            Address = 0xff&temp2[looper2];
                             GlobalLooper++;
                         }
-                        else
-                        {
-                            RawEcgData |= (0xFF&(int)temp2[looper2]) << (8 * (3 - (looper % 4)));
-                            if(RawEcgData == 0x97ffff)
-                            {
-                                RawEcgData = PrevRawData;
-                                //Log.d("EcgDrawer", "KAKSI");
-                            }
-                            else PrevRawData = RawEcgData;
-                        }
-                        System.arraycopy(Prevs,0,Prevs,1,Prevs.length-1);
-                        Prevs[0]=temp2[looper2];
+                        else RawEcgData |= (0xFF&(int)temp2[looper2]) << (8 * (3 - (looper % 4)));
                         looper++;
                     }
                     looper2++;
                 }
-
+                //System.arraycopy(temp2,0,Prevtemp2,0,64);
             } while ((GlobalLooper < DSize || !Header) && BytesWithBulk>=0);
             Data.Channel1Size=GlobalCounter11;
             Data.Channel2Size=GlobalCounter12;
