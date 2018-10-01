@@ -14,7 +14,7 @@ import android.os.Message;
 public class PeriodicalDataRefresherThread extends Thread {
     public Handler handler;
     public Handler mainHandler;
-    private ChannelSignal EcgChannelSignals = new ChannelSignal(470);
+    private ChannelSignal EcgChannelSignals = new ChannelSignal(500);
     public UsbEcgHAL ecg;
     public volatile int RefreshedData[][];
     public CurveDrawer Ch1Drawer;
@@ -23,14 +23,14 @@ public class PeriodicalDataRefresherThread extends Thread {
     public CurveDrawer Ch4Drawer;
     public CurveDrawer Ch5Drawer;
 
-    private CountDownTimer DataRefreshTimer= new CountDownTimer(Long.MAX_VALUE,50) {
+    private CountDownTimer DataRefreshTimer;/*= new CountDownTimer(Long.MAX_VALUE,50) {
         @Override
         public void onTick(long l) {
             ecg.Read(EcgChannelSignals); //TODO: original
             //ecg.TEST_Read(EcgChannelSignals);
+            Ch1Drawer.DrawDatas(EcgChannelSignals.Channel1Data,EcgChannelSignals.Channel1Size);
             //Ch1Drawer.DrawDatas(EcgChannelSignals.Channel1Data,EcgChannelSignals.Channel1Size);
-            //Ch1Drawer.DrawDatas(EcgChannelSignals.Channel1Data,EcgChannelSignals.Channel1Size);
-            Ch2Drawer.DrawDatas(EcgChannelSignals.Channel2Data,EcgChannelSignals.Channel2Size);
+            //Ch2Drawer.DrawDatas(EcgChannelSignals.Channel2Data,EcgChannelSignals.Channel2Size);
             //Ch3Drawer.DrawDatas(EcgChannelSignals.Channel3Data,EcgChannelSignals.Channel3Size);
             Message msg = mainHandler.obtainMessage();
             msg.arg1=1;
@@ -42,7 +42,7 @@ public class PeriodicalDataRefresherThread extends Thread {
         public void onFinish() {
             this.start();
         }
-    };
+    };*/
 
     private void StartDataRefreshTimer()
     {
@@ -64,12 +64,35 @@ public class PeriodicalDataRefresherThread extends Thread {
                 switch (msg.arg1)
                 {
                     case 1: //start timer
-                        StartDataRefreshTimer();
+                        //StartDataRefreshTimer();
+                        DataRefreshTimer= new CountDownTimer(Long.MAX_VALUE,100) {
+                            @Override
+                            public void onTick(long l) {
+                                ecg.Read(EcgChannelSignals); //TODO: original
+                                //ecg.TEST_Read(EcgChannelSignals);
+                                //Ch1Drawer.DrawDatas(EcgChannelSignals.Channel1Data,EcgChannelSignals.Channel1Size);
+                                //Ch1Drawer.DrawDatas(EcgChannelSignals.Channel1Data,EcgChannelSignals.Channel1Size);
+                                //Ch2Drawer.DrawDatas(EcgChannelSignals.Channel2Data,EcgChannelSignals.Channel2Size);
+                                //Ch3Drawer.DrawDatas(EcgChannelSignals.Channel3Data,EcgChannelSignals.Channel3Size);
+                                Message msg = mainHandler.obtainMessage();
+                                msg.arg1=1;
+                                msg.obj = EcgChannelSignals;
+                                mainHandler.sendMessage(msg);
+                            }
+
+                            @Override
+                            public void onFinish() {
+                                this.start();
+                            }
+                        }.start();
                         break;
                     case 2: //stop timer
                         StopDataRefreshTimer();
                         break;
                     case 3:
+                        break;
+                    case -1:
+                        Looper.myLooper().quit();
                         break;
                 }
 

@@ -118,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
         Ch3Drawer = new CurveDrawer(DataCanvas3);
         Ch4Drawer = new CurveDrawer(DataCanvas4);
         Ch5Drawer = new CurveDrawer(DataCanvas5);
-        ecg=new UsbEcgHAL(this,s,0x2405,0xB, FileHandler); //TODO:original
+        ecg=new UsbEcgHAL(this,s,0x2405,0xB, FileHandler);
         ecg.t2=textView4;
         //ecg=new UsbEcgHAL(this,s,0x0461,0x0033);
         ecg.setTextView(textView3);
@@ -157,6 +157,7 @@ public class MainActivity extends AppCompatActivity {
         if(isConnected)
         {
             ConnectButtonObj.setText(ConnectString);
+            isConnected=false;
         }
         else
         {

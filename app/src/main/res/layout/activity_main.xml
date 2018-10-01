@@ -14,9 +14,9 @@
         <TextView
             android:id="@+id/textView4"
             android:layout_width="288dp"
-            android:layout_height="140dp"
+            android:layout_height="38dp"
             android:layout_marginStart="48dp"
-            android:layout_marginTop="400dp"
+            android:layout_marginTop="224dp"
             android:text="TextView"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -24,19 +24,19 @@
         <TextView
             android:id="@+id/textView3"
             android:layout_width="288dp"
-            android:layout_height="120dp"
+            android:layout_height="42dp"
             android:layout_marginStart="48dp"
-            android:layout_marginTop="260dp"
+            android:layout_marginTop="168dp"
             android:text="TextView"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/textView2"
-            android:layout_width="287dp"
-            android:layout_height="82dp"
-            android:layout_marginStart="48dp"
-            android:layout_marginTop="172dp"
+            android:layout_width="158dp"
+            android:layout_height="52dp"
+            android:layout_marginStart="188dp"
+            android:layout_marginTop="104dp"
             android:text="TextView"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -55,8 +55,8 @@
             android:id="@+id/ConncectButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="40dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="28dp"
             android:onClick="ConnectButtonOnClick"
             android:text="Connect"
             app:layout_constraintStart_toStartOf="parent"
@@ -67,7 +67,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="148dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="28dp"
             android:onClick="StartButtonOnClick"
             android:text="Start"
             app:layout_constraintEnd_toEndOf="parent"
@@ -75,13 +75,14 @@
 
         <com.example.benjamin.ecgdrawer.DrawView
             android:id="@+id/drawview"
-            android:layout_width="293dp"
+            android:layout_width="296dp"
             android:layout_height="139dp"
             android:layout_centerInParent="true"
             android:layout_marginEnd="26dp"
             android:layout_marginStart="26dp"
-            android:layout_marginTop="556dp"
+            android:layout_marginTop="280dp"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.512"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -92,7 +93,7 @@
             android:layout_centerInParent="true"
             android:layout_marginEnd="26dp"
             android:layout_marginStart="26dp"
-            android:layout_marginTop="708dp"
+            android:layout_marginTop="436dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -104,7 +105,7 @@
             android:layout_centerInParent="true"
             android:layout_marginEnd="8dp"
             android:layout_marginStart="44dp"
-            android:layout_marginTop="852dp"
+            android:layout_marginTop="600dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"

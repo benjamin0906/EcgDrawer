@@ -57,13 +57,10 @@ public class UsbEcgHAL extends AppCompatActivity {
     public CurveDrawer Ch3Drawer;
     public CurveDrawer Ch4Drawer;
     public CurveDrawer Ch5Drawer;
-    private boolean Saving;
     private FileDriver FileHandler;
     private WorkingThread RWaveDetectorThread;
-    private boolean asd = false;
-    byte TEST_temp2[] = {(0x53), (0x2), (0x8),(0x0),(0x14), (byte) 0xFE,(0xF),(0x53),(0x15), (byte) 0xFD, (byte) 0xD3, (byte) 0xAB, (byte) 0x80,(0x0),(0x0),(0x0),(0x11), (byte) 0xFF, (byte) 0xFF, (byte) 0xCF,(0x12), (byte) 0xFF, (byte) 0xFF, (byte) 0xFA,(0x13), (byte) 0xFF, (byte) 0xFF, (byte) 0xF3,(0x14), (byte) 0xFE,(0xB), (byte) 0xE7,(0x15), (byte) 0xFD, (byte) 0xD0, (byte) 0x99, (byte) 0x80,(0x0),(0x0),(0x0),(0x11), (byte) 0xFF, (byte) 0xFF, (byte) 0xCA,(0x12), (byte) 0xFF, (byte) 0xFF, (byte) 0xFA,(0x13), (byte) 0xFF, (byte) 0xFF, (byte) 0xFA,(0x14), (byte) 0xFE,(0x8),(0x17),(0x15), (byte) 0xFD, (byte) 0xCD,(0x24), (byte) 0x80,(0x0),(0x0)};
-    byte TEST_temp3[] = {(0x11), (0x8),(0x0),(0x14), (byte) 0x12,(0xF),(0x53),(0x15), (byte) 0x13, (byte) 0xD3, (byte) 0xAB, (byte) 0x80,(0x14),(0x0),(0x0),(0x11), (byte) 0x15, (byte) 0xFF, (byte) 0xCF,(0x12), (byte) 0x80, (byte) 0xFF, (byte) 0xFA,(0x13), (byte) 0x11, (byte) 0xFF, (byte) 0xF3,(0x14), (byte) 0x12,(0xB), (byte) 0xE7,(0x15), (byte) 0x13, (byte) 0xD0, (byte) 0x99, (byte) 0x80,(0x14),(0x0),(0x0),(0x11), (byte) 0x15, (byte) 0xFF, (byte) 0xCA,(0x12), (byte) 0x80, (byte) 0xFF, (byte) 0xFA,(0x13), (byte) 0x11, (byte) 0xFF, (byte) 0xFA,(0x14), (byte) 0x12,(0x8),(0x17),(0x15), (byte) 0x13, (byte) 0xCD,(0x24), (byte) 0x80,(0x14),(0x0),0x0};
-    boolean TEST_BOOL = false;
+    byte Saved[][]= new byte[3200][63];
+    int SavedIter =0;
 
     public UsbEcgHAL(Context c, String s, int VID, int PID, FileDriver FH)
     {
@@ -76,7 +73,34 @@ public class UsbEcgHAL extends AppCompatActivity {
         AskArray[1]=AskCommand;
         RefreshedData = new int[5][2200];
         FileHandler = FH;
-        ReturnHandler = new Handler()
+        ReturnHandler = new Handler(new Handler.Callback() {
+            @Override
+            public boolean handleMessage(Message msg) {
+                switch (msg.arg1)
+                {
+                    case 1:
+                        ChannelSignal Datas = (ChannelSignal) msg.obj;
+                        float temp[] = new float[500];
+                        //FileHandler.Write(Datas.Channel1Data,Datas.Channel1Size);
+                        Ch2Drawer.DrawDatas(Datas.Channel2Data,Datas.Channel2Size);
+                        System.arraycopy(Datas.Channel2Data,0, temp,0,Datas.Channel2Size);
+                        msg = RWaveDetectorThread.ToWorkingThread.obtainMessage();
+                        msg.arg2=Datas.Channel2Size;
+                        msg.arg1=1;
+                        msg.obj=temp;
+                        RWaveDetectorThread.ToWorkingThread.sendMessage(msg);
+                        break;
+                    case 2:
+                        break;
+                    case 3:
+                        t.setText("HRT: "+Float.toString(60*2000/((float)msg.arg2)));
+                        //asd = !asd;
+                        break;
+                }
+                return false;
+            }
+        });
+        /*ReturnHandler = new Handler()
         {
             @Override
             public void handleMessage(Message msg)
@@ -86,7 +110,8 @@ public class UsbEcgHAL extends AppCompatActivity {
                     case 1:
                         ChannelSignal Datas = (ChannelSignal) msg.obj;
                         float temp[] = new float[500];
-                        FileHandler.Write(Datas.Channel1Data,Datas.Channel1Size);
+                        //FileHandler.Write(Datas.Channel1Data,Datas.Channel1Size);
+                        Ch2Drawer.DrawDatas(Datas.Channel2Data,Datas.Channel2Size);
                         System.arraycopy(Datas.Channel2Data,0, temp,0,Datas.Channel2Size);
                         msg = RWaveDetectorThread.ToWorkingThread.obtainMessage();
                         msg.arg2=Datas.Channel2Size;
@@ -106,22 +131,25 @@ public class UsbEcgHAL extends AppCompatActivity {
                 //FileHandler.TEST_Write(Datas.TEST_Date,Datas.TEST_DATA_Size);
                 //Ch1Drawer.DrawDatas(Datas.Channel1Data,Datas.Channel1Size);
                 //Ch2Drawer.DrawDatas(Datas.Channel2Data,Datas.Channel2Size);
-                /*Ch3Drawer.DrawDatas(Datas.Channel3Data,Datas.Channel3Size);
-                Ch4Drawer.DrawDatas(Datas.Channel4Data,Datas.Channel4Size);
-                Ch5Drawer.DrawDatas(Datas.Channel5Data,Datas.Channel5Size);*/
+                //Ch3Drawer.DrawDatas(Datas.Channel3Data,Datas.Channel3Size);
+                //Ch4Drawer.DrawDatas(Datas.Channel4Data,Datas.Channel4Size);
+                //Ch5Drawer.DrawDatas(Datas.Channel5Data,Datas.Channel5Size);
             }
-        };
+        };*/
 
         RWaveDetectorThread = new WorkingThread(context,ReturnHandler);
         RWaveDetectorThread.start();
-        while(RWaveDetectorThread.ToWorkingThread == null);
+        boolean vari;
+        do
+        {
+            vari = RWaveDetectorThread.ToWorkingThread == null;
+        }while(vari);
         Message msg = RWaveDetectorThread.ToWorkingThread.obtainMessage();
         msg.arg1=0;
         RWaveDetectorThread.ToWorkingThread.sendMessage(msg);
     }
     public boolean Initialize()
     {
-        //t.setText("1 ");
         boolean ret=false;
         HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
         if(1 < deviceList.values().size())
@@ -138,24 +166,18 @@ public class UsbEcgHAL extends AppCompatActivity {
         }
 
         Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
-
         boolean CorrectDevice=false;
         while(deviceIterator.hasNext() && !CorrectDevice)
         {
-            //t.append("1.1 ");
             device = deviceIterator.next();
             manager.requestPermission(device, mPermissionIntent);
             while (!manager.hasPermission(device));
             if(device.getVendorId() == VendorID)
             {
-                //t.append("1.2 ");
                 if(device.getProductId() == ProductID)
                 {
-                    //t.append("1.3 ");
-                    //t.setText(Integer.toString(device.getInterfaceCount()));
                     for(int looper=0; looper < device.getInterfaceCount(); looper++)
                     {
-                        //t.append("2 ");
                         UsbInterface TemporaryInterface = device.getInterface(looper);
                         switch (TemporaryInterface.getEndpointCount())
                         {
@@ -182,25 +204,13 @@ public class UsbEcgHAL extends AppCompatActivity {
                     }
                 }
             }
-            if(WriteEndpoint != null && ReadEndpoint != null)
-            {
-                CorrectDevice = true;
-                //t.setText("3 ");
-            }
+            if(WriteEndpoint != null && ReadEndpoint != null) CorrectDevice = true;
         }
         if(WriteEndpoint != null && ReadEndpoint != null)
         {
-            //t.append("jó");
             connection = manager.openDevice(device);
             connection.claimInterface(ControlInterface,true);
             connection.claimInterface(DataInterface,true);
-            //t.setText("4 ");
-            //thread =new MyThread2();
-            /*thread =new MyThread(InputBuffer);
-            thread.mainHandler = handler;
-            thread.start();
-            while (thread.handler == null);*/
-
             ret=true;
         }
         return ret;
@@ -219,172 +229,6 @@ public class UsbEcgHAL extends AppCompatActivity {
         return (float) sData*ScaleFactor;
     }
 
-    public void TEST_Read(ChannelSignal Data)
-    {
-        int BytesWithBulk=0;
-        byte temp2[] = new byte[64];
-        byte TEST_address=0x11;
-        int TEST_value = 0;
-        int TEST_Packet_Looper = 0;
-        {
-            boolean Header=false;
-            boolean StartSign=false;
-            boolean DSizeH=false;
-            int CommandSign=0;
-            int DSize=0;
-            int GlobalCounter11=0;
-            int GlobalCounter12=0;
-            int GlobalCounter13=0;
-            int GlobalCounter14=0;
-            int GlobalCounter15=0;
-            int Address=0;
-            int looper=0;
-            int GlobalLooper=0;
-            int looper2;
-            int RawEcgData=0;
-            do
-            {
-                //BytesWithBulk=connection.bulkTransfer(ReadEndpoint,temp2,64,1);
-                if(TEST_Packet_Looper == 0)
-                {
-                    BytesWithBulk=64;
-                    temp2[0] = 0x53;
-                    temp2[1] = 0x01;
-                    temp2[2] = 0x08;
-                    temp2[3] = 0x00;
-                    for(int looper3=4;looper3<64;looper3++)
-                    {
-                        if(looper3%4 == 0)
-                        {
-                            temp2[looper3] =TEST_address;
-                            TEST_address++;
-                            if(TEST_address == 0x16)
-                            {
-                                TEST_address = 0x11;
-                                TEST_value++;
-                            }
-                        }
-                        else
-                        {
-                            temp2[looper3] = (byte)(TEST_value>>(8*(3-looper3%4)));
-                        }
-                    }
-                }
-                else
-                {
-                    if(TEST_Packet_Looper < 128)
-                    {
-                        for(int looper3=0;looper3<64;looper3++)
-                        {
-                            if(looper3%4 == 0)
-                            {
-                                temp2[looper3] =TEST_address;
-                                TEST_address++;
-                                if(TEST_address == 0x16)
-                                {
-                                    TEST_address = 0x11;
-                                    TEST_value++;
-                                }
-                            }
-                            else
-                            {
-                                temp2[looper3] = (byte)(TEST_value>>(8*(3-looper3%4)));
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if(TEST_Packet_Looper == 128) {
-                            temp2[0] = TEST_address;
-                            TEST_address++;
-                            temp2[1] = (byte) (TEST_value >> (8 * (3 - 1 % 4)));
-                            temp2[2] = (byte) (TEST_value >> (8 * (3 - 2 % 4)));
-                            temp2[3] = (byte) (TEST_value >> (8 * (3 - 3 % 4)));
-                            BytesWithBulk = 4;
-                        }
-                        else BytesWithBulk = 0;
-                    }
-                }
-                TEST_Packet_Looper++;
-                looper2=0;
-                while (BytesWithBulk > looper2)
-                {
-                    if (!Header)
-                    {
-                        if (!StartSign)
-                        {
-                            if (temp2[looper2] == 0x53) StartSign = true;
-                        }
-                        else
-                        {
-                            if (CommandSign == 0) CommandSign = temp2[looper2];
-                            else
-                            {
-                                if (!DSizeH)
-                                {
-                                    DSize = (temp2[looper2]) << 8;
-                                    DSizeH = true;
-                                }
-                                else
-                                {
-                                    DSize += temp2[looper2];
-                                    Header = true;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if ((looper % 4) == 0)
-                        {
-                            switch (Address)
-                            {
-                                case 0x11:
-                                    Data.Channel1Data[GlobalCounter11]=EcgDataToFloat(RawEcgData);
-                                    GlobalCounter11++;
-                                    RawEcgData=0;
-                                    break;
-                                case 0x12:
-                                    Data.Channel2Data[GlobalCounter12]=EcgDataToFloat(RawEcgData);
-                                    GlobalCounter12++;
-                                    RawEcgData=0;
-                                    break;
-                                case 0x13:
-                                    Data.Channel3Data[GlobalCounter13]=EcgDataToFloat(RawEcgData);
-                                    GlobalCounter13++;
-                                    RawEcgData=0;
-                                    break;
-                                case 0x14:
-                                    Data.Channel4Data[GlobalCounter14]=EcgDataToFloat(RawEcgData);
-                                    GlobalCounter14++;
-                                    RawEcgData=0;
-                                    break;
-                                case 0x15:
-                                    Data.Channel5Data[GlobalCounter15]=EcgDataToFloat(RawEcgData);
-                                    GlobalCounter15++;
-                                    RawEcgData=0;
-                                    break;
-                            }
-                            Address = temp2[looper2];
-                            GlobalLooper++;
-                        }
-                        else RawEcgData |= (0xFF&(int)temp2[looper2]) << (8 * (3 - (looper % 4)));
-                        looper++;
-                    }
-                    looper2++;
-                }
-
-            } while ((GlobalLooper < DSize || !Header) && BytesWithBulk>=0);
-            Data.Channel1Size=GlobalCounter11;
-            Data.Channel2Size=GlobalCounter12;
-            Data.Channel3Size=GlobalCounter13;
-            Data.Channel4Size=GlobalCounter14;
-            Data.Channel5Size=GlobalCounter15;
-            BytesWithBulk=0;
-            while (BytesWithBulk>0) BytesWithBulk=connection.bulkTransfer(ReadEndpoint,temp2,64,2);
-        }
-    }
-
     public void Read(ChannelSignal Data)
     {
         int BytesWithBulk=0;
@@ -396,7 +240,6 @@ public class UsbEcgHAL extends AppCompatActivity {
             boolean Header=false;
             boolean StartSign=false;
             boolean DSizeH=false;
-            boolean error = false;
             int CommandSign=0;
             int DSize=0;
             int GlobalCounter11=0;
@@ -414,13 +257,6 @@ public class UsbEcgHAL extends AppCompatActivity {
             do
             {
                 BytesWithBulk=connection.bulkTransfer(ReadEndpoint,temp2,63,1);
-                /*if(!TEST_BOOL)
-                {
-                    temp2 = TEST_temp2;
-                    TEST_BOOL = true;
-                }
-                else temp2 = TEST_temp3;
-                BytesWithBulk=63;//*/
                 looper2=0;
                 while (BytesWithBulk > looper2)
                 {
@@ -491,7 +327,8 @@ public class UsbEcgHAL extends AppCompatActivity {
                                                                 } else looper--;
                                                             }
                                                             else {
-                                                                if (temp2[looper2 + 1 - 4] == 0x80) {
+                                                                //if (temp2[looper2 + 1 - 4] == 0x80) {
+                                                                if (temp2[looper2 + 1 - 4] == 0x15) {
                                                                     looper2++;
                                                                     looper -= 4;
                                                                 } else looper--;
@@ -541,27 +378,14 @@ public class UsbEcgHAL extends AppCompatActivity {
                                                             break;
                                                         case 0x15:
                                                             if(looper2 < BytesWithBulk -1-4) {
-                                                                if (temp2[looper2 + 1 + 4] == 0x80) {
-                                                                    looper2++;
-                                                                    looper -= 4;
-                                                                } else looper--;
-                                                            }
-                                                            else {
-                                                                if (temp2[looper2 + 1 - 4] == 0x14) {
-                                                                    looper2++;
-                                                                    looper -= 4;
-                                                                } else looper--;
-                                                            }
-                                                            break;
-                                                        case (byte) 0x80:
-                                                            if(looper2 < BytesWithBulk -1-4) {
+                                                                //if (temp2[looper2 + 1 + 4] == 0x80) {
                                                                 if (temp2[looper2 + 1 + 4] == 0x11) {
                                                                     looper2++;
                                                                     looper -= 4;
                                                                 } else looper--;
                                                             }
                                                             else {
-                                                                if (temp2[looper2 + 1 - 4] == 0x15) {
+                                                                if (temp2[looper2 + 1 - 4] == 0x14) {
                                                                     looper2++;
                                                                     looper -= 4;
                                                                 } else looper--;
@@ -583,8 +407,14 @@ public class UsbEcgHAL extends AppCompatActivity {
                     }
                     looper2++;
                 }
-                //System.arraycopy(temp2,0,Prevtemp2,0,64);
+                if(SavedIter<3000)
+                {
+                    System.arraycopy(temp2,0,Saved[SavedIter],0,63);
+                    SavedIter++;
+                }
+
             } while ((GlobalLooper < DSize || !Header) && BytesWithBulk>=0);
+            //Log.d("---UsbEcgHAL---","Time: "+Long.toString((System.currentTimeMillis()-time)));
             Data.Channel1Size=GlobalCounter11;
             Data.Channel2Size=GlobalCounter12;
             Data.Channel3Size=GlobalCounter13;
@@ -608,10 +438,6 @@ public class UsbEcgHAL extends AppCompatActivity {
     }
     public void StartDataReadThread(boolean SavingNeeded)
     {
-        if(SavingNeeded)
-        {
-            Saving = true;
-        }
         Thread = new PeriodicalDataRefresherThread();
         Thread.ecg = this;
         Thread.mainHandler=ReturnHandler;
@@ -621,6 +447,7 @@ public class UsbEcgHAL extends AppCompatActivity {
         Thread.Ch3Drawer=this.Ch3Drawer;
         Thread.Ch4Drawer=this.Ch4Drawer;
         Thread.Ch5Drawer=this.Ch5Drawer;
+        Thread.setName("PeriodicalDataRefresherThread");
 
 
         Thread.start();
@@ -632,6 +459,9 @@ public class UsbEcgHAL extends AppCompatActivity {
     public void StopDataReadThread()
     {
         FileHandler.Close();
-        Thread.stop(); //TODO: This is not working, if this is executed the app is crashed.
+        Message msg = Thread.handler.obtainMessage();
+        msg.arg1=-1;
+        Thread.handler.sendMessage(msg);
+        //Thread.stop(); //TODO: This is not working, if this is executed the app is crashed.
     }
 }

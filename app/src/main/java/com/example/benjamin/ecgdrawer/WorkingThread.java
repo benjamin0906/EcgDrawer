@@ -9,7 +9,6 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 
 public class WorkingThread extends Thread
 {
@@ -40,7 +39,6 @@ public class WorkingThread extends Thread
     private float[] ResultArray;
     private float[] ResultArray3;
     private float[] ResultArray4;
-    private float[] ResultArray5;
     private int MaxDebounce = 0;
     private int RWaveCounter = 0;
 
@@ -57,8 +55,36 @@ public class WorkingThread extends Thread
         ResultArray = new float[500];
         ResultArray3 = new float[500];
         ResultArray4 = new float[500];
-        ResultArray5 = new float[500];
-        ReturnFromHelperThread = new Handler()
+        ReturnFromHelperThread = new Handler(new Handler.Callback() {
+            @Override
+            public boolean handleMessage(Message msg) {
+                switch (msg.arg1)
+                {
+                    case 1:
+                        HelperThreadReady[0] = true;
+                        ReturnedResult[0] = (float) msg.obj;
+                        break;
+                    case 2:
+                        HelperThreadReady[1] = true;
+                        ReturnedResult[1] = (float) msg.obj;
+                        break;
+                    case 3:
+                        HelperThreadReady[2] = true;
+                        ReturnedResult[2] = (float) msg.obj;
+                        break;
+                    case 4:
+                        HelperThreadReady[3] = true;
+                        ReturnedResult[3] = (float) msg.obj;
+                        break;
+                    case 5:
+                        HelperThreadReady[4] = true;
+                        ReturnedResult[4] = (float) msg.obj;
+                        break;
+                }
+                return false;
+            }
+        });
+        /*ReturnFromHelperThread = new Handler()
         {
             @Override
             public void handleMessage(Message msg)
@@ -87,7 +113,7 @@ public class WorkingThread extends Thread
                         break;
                 }
             }
-        };
+        };*/
     }
 
     @SuppressLint("HandlerLeak")
@@ -146,17 +172,12 @@ public class WorkingThread extends Thread
 
                         break;
                     case 1:
-                        //Log.d("---WorkingThread---", "Calculating...");
                         int looper2;
                         float LocalMax = 0;
-                        int LocalPlace=0;
                         int GivenData;
-                        long StopTime;
-                        long StartTime = System.nanoTime();
                         TestData = (float[]) msg.obj;
                         for(looper2 = 0; looper2 < msg.arg2; looper2++)
                         {
-                            //StartTime = System.nanoTime();
                             ToHelperThreadMsg[0] = HelperThread[0].ToHelperThread.obtainMessage();
                             HelperThreadReady[0] =false;
 
@@ -169,9 +190,6 @@ public class WorkingThread extends Thread
                             ToHelperThreadMsg[0].obj = MessageHelper;
                             ToHelperThreadMsg[0].arg1 = 1;
                             HelperThread[0].ToHelperThread.sendMessage(ToHelperThreadMsg[0]);
-
-                            //StopTime = System.nanoTime();
-                            //Log.d("---WorkingThread---"," Execution Time 1: "+Float.toString((float)(StopTime-StartTime)/1000));
 
                             if(looper2 < TestData.length)
                             {
@@ -228,10 +246,6 @@ public class WorkingThread extends Thread
                                 ToHelperThreadMsg[4].arg1 = 5;
                                 HelperThread[4].ToHelperThread.sendMessage(ToHelperThreadMsg[4]);//*/
                             }
-
-                            //StopTime = System.nanoTime();
-                            //Log.d("---WorkingThread---"," Execution Time 2: "+Float.toString((float)(StopTime-StartTime)/1000));
-
                             {
                                 looper2--;
                                 System.arraycopy(buffer, 0, buffer, GivenData, buffer.length - GivenData);
@@ -297,15 +311,12 @@ public class WorkingThread extends Thread
                                     {
                                         if(ResultArray[looper2+1-GivenData+looper3] >= LocalMax)
                                         {
-                                            LocalPlace = looper2+1-GivenData+looper3;
                                             LocalMax = ResultArray4[looper2+1-GivenData+looper3];
                                         }
                                         if(DebounceCounter < 600) DebounceCounter++;
                                         else
                                         {
-                                            Log.d("---WorkingThread---","Time: "+Long.toString(System.currentTimeMillis()));
                                             MaxDebounce = 0;
-                                            ResultArray5[LocalPlace] = 1;
                                             Debouncing = false;
                                             Message m = ReturnHandler.obtainMessage();
                                             m.obj = ResultArray4;
@@ -320,7 +331,6 @@ public class WorkingThread extends Thread
                                         Debouncing = true;
                                         DebounceCounter = 0;
                                         LocalMax = ResultArray[looper2+1-GivenData+looper3];
-                                        LocalPlace = looper2+1-GivenData+looper3;
                                     }
                                     else {
                                         MaxDebounce++;
@@ -333,11 +343,9 @@ public class WorkingThread extends Thread
                                 }//*/
                             }
                         }
-                        StopTime = System.nanoTime();
-                        //Log.d("---WorkingThread---"," Execution Time fulle: "+Float.toString((float)(StopTime-StartTime)/1000));
                         Message m = ReturnHandler.obtainMessage();
                         m.obj = ResultArray4;
-                        m.arg1 = Float.floatToIntBits((float)(StopTime-StartTime)/1000);
+                        m.arg1 = 0;
                         m.arg1 = 2;
                         ReturnHandler.sendMessage(m);
                         break;
