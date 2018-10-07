@@ -16,6 +16,7 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
+import android.hardware.usb.UsbRequest;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.ContactsContract;
@@ -25,8 +26,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.TextView;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.FileHandler;
 
 public class UsbEcgHAL extends AppCompatActivity {
@@ -82,6 +86,7 @@ public class UsbEcgHAL extends AppCompatActivity {
                         ChannelSignal Datas = (ChannelSignal) msg.obj;
                         float temp[] = new float[500];
                         //FileHandler.Write(Datas.Channel1Data,Datas.Channel1Size);
+                        Ch1Drawer.DrawDatas(Datas.Channel1Data,Datas.Channel1Size);
                         Ch2Drawer.DrawDatas(Datas.Channel2Data,Datas.Channel2Size);
                         System.arraycopy(Datas.Channel2Data,0, temp,0,Datas.Channel2Size);
                         msg = RWaveDetectorThread.ToWorkingThread.obtainMessage();
@@ -229,11 +234,141 @@ public class UsbEcgHAL extends AppCompatActivity {
         return (float) sData*ScaleFactor;
     }
 
+    public void Read2(ChannelSignal Data)
+    {
+        long StartTime = System.nanoTime();
+        int BytesWithBulk = 0;
+        byte temp2[] = new byte[63];
+        int ReadBytes = 0;
+        byte ReadData[] = new byte[90000];
+        int error=0;
+        int ReceivedSize=0;
+        int ReservedBytes=0;
+        int debounce = 0;
+        long Stime1=0;
+        long Stime2 = 0;
+
+        UsbRequest WriteRequest = new UsbRequest();
+        WriteRequest.initialize(connection,WriteEndpoint);
+        ByteBuffer buff = ByteBuffer.wrap(AskArray);
+        boolean WriteQueue = WriteRequest.queue(buff,4);//*/
+
+        //BytesWithBulk=connection.bulkTransfer(WriteEndpoint,AskArray,AskArray.length,1);
+        //UsbRequest ReadRequest =new UsbRequest();
+        UsbRequest ReadRequest = connection.requestWait();
+        boolean initialized = ReadRequest.initialize(connection,ReadEndpoint);
+        if(!initialized) Log.d("---UsbEcgHAL---", "reading uninitiated");
+        ByteBuffer ReadBuff = ByteBuffer.allocate(ReadEndpoint.getMaxPacketSize());
+        byte ReceiverPacket[] = ReadBuff.array();
+        int MessageSize=0;
+        boolean FirstPacketArrived = false;
+        do {
+            boolean ReadQueue = ReadRequest.queue(ReadBuff,63);
+            if(ReadQueue)
+            {
+                    if (ReadRequest == connection.requestWait()) {
+                        ReceiverPacket = ReadBuff.array();
+                        if (ReceiverPacket[0] == (byte) 0x53) {
+                            if (ReceiverPacket[1] == (byte) 0x02) {
+                                MessageSize = 0xff00 & ((int) ReceiverPacket[2] << 8) | 0xff & ((int) ReceiverPacket[3]);
+                                FirstPacketArrived = true;
+                            }
+                            else
+                            {
+                                Log.d("---UsbEcgHAL---","ERROR 1");
+                            }
+                        }
+                        else
+                        {
+                            Log.d("---UsbEcgHAL---","ERROR 1");
+                        }
+                    }
+                    else
+                    {
+                        Log.d("---UsbEcgHAL---","ERROR 1");
+                    }
+            }
+        }while (!FirstPacketArrived);
+
+        int DataCounter=0;
+        byte DataAddress=0;
+        int looper=4;
+        int RawData=0;
+        Data.Channel1Size = 0;
+        Data.Channel2Size = 0;
+        Data.Channel3Size = 0;
+        Data.Channel4Size = 0;
+        Data.Channel5Size = 0;
+        do {
+            if (DataCounter % 4 == 0) {
+                switch (DataAddress) {
+                    case 0x11:
+                        Data.Channel1Data[Data.Channel1Size++] = EcgDataToFloat(RawData);
+                        break;
+                }
+                DataAddress = ReceiverPacket[looper];
+                RawData = 0;
+            } else {
+                RawData |= (0xff & (int) ReceiverPacket[looper]) << (8 * (3 - (DataCounter % 4)));
+            }
+            looper++;
+            DataCounter++;
+        } while(looper <63);
+        do
+        {
+            if(DataCounter<MessageSize*4 && looper==63)
+            {
+                boolean ReadQueue = ReadRequest.queue(ReadBuff,63);
+                if(ReadQueue)
+                {
+                    if(ReadRequest == connection.requestWait())
+                    {
+                        ReceiverPacket = ReadBuff.array();
+                        looper=0;
+                    }
+                }
+            }
+            if(looper != 63) {
+                if (DataCounter % 4 == 0) {
+                    switch (DataAddress) {
+                        case 0x11:
+                            Data.Channel1Data[Data.Channel1Size++] = EcgDataToFloat(RawData);
+                            break;
+                        case 0x12:
+                            Data.Channel2Data[Data.Channel2Size++] = EcgDataToFloat(RawData);
+                            break;
+                        case 0x13:
+                            Data.Channel3Data[Data.Channel3Size++] = EcgDataToFloat(RawData);
+                            break;
+                        case 0x14:
+                            Data.Channel4Data[Data.Channel4Size++] = EcgDataToFloat(RawData);
+                            break;
+                        case 0x15:
+                            Data.Channel5Data[Data.Channel5Size++] = EcgDataToFloat(RawData);
+                            break;
+                    }
+                    DataAddress = ReceiverPacket[looper];
+                    RawData = 0;
+                } else {
+                    RawData |= (0xff & (int) ReceiverPacket[looper]) << (8 * (3 - (DataCounter % 4)));
+                }
+                looper++;
+                DataCounter++;
+            }
+        }while (DataCounter < MessageSize*4);
+    }
+
     public void Read(ChannelSignal Data)
     {
         int BytesWithBulk=0;
         byte temp2[] = new byte[64];
-        if(connection != null) BytesWithBulk=connection.bulkTransfer(WriteEndpoint,AskArray,AskArray.length,1);
+        if(connection != null)
+        {
+            do {
+                BytesWithBulk=connection.bulkTransfer(ReadEndpoint,temp2,63,1);
+                BytesWithBulk = connection.bulkTransfer(WriteEndpoint, AskArray, AskArray.length, 5);
+            }while(BytesWithBulk != AskArray.length);
+        }
 
         if(BytesWithBulk == AskArray.length)
         {
@@ -256,7 +391,7 @@ public class UsbEcgHAL extends AppCompatActivity {
             int RawEcgData=0;
             do
             {
-                BytesWithBulk=connection.bulkTransfer(ReadEndpoint,temp2,63,1);
+                BytesWithBulk=connection.bulkTransfer(ReadEndpoint,temp2,63,5);
                 looper2=0;
                 while (BytesWithBulk > looper2)
                 {
@@ -428,6 +563,7 @@ public class UsbEcgHAL extends AppCompatActivity {
             {
                 BytesWithBulk=connection.bulkTransfer(ReadEndpoint,temp2,1,10);
             }while(BytesWithBulk>0);
+            Log.d("---UsbEcgHAL---","Asking failed");
         }
 
     }
