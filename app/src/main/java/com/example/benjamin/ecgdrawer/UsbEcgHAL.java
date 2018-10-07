@@ -18,7 +18,6 @@ import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.os.Handler;
 import android.os.Message;
-import android.provider.ContactsContract;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -27,7 +26,6 @@ import android.widget.TextView;
 
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.logging.FileHandler;
 
 public class UsbEcgHAL extends AppCompatActivity {
     private Context context;
@@ -82,6 +80,7 @@ public class UsbEcgHAL extends AppCompatActivity {
                         ChannelSignal Datas = (ChannelSignal) msg.obj;
                         float temp[] = new float[500];
                         //FileHandler.Write(Datas.Channel1Data,Datas.Channel1Size);
+                        Ch1Drawer.DrawDatas(Datas.Channel1Data,Datas.Channel1Size);
                         Ch2Drawer.DrawDatas(Datas.Channel2Data,Datas.Channel2Size);
                         System.arraycopy(Datas.Channel2Data,0, temp,0,Datas.Channel2Size);
                         msg = RWaveDetectorThread.ToWorkingThread.obtainMessage();
@@ -94,50 +93,14 @@ public class UsbEcgHAL extends AppCompatActivity {
                         break;
                     case 3:
                         t.setText("HRT: "+Float.toString(60*2000/((float)msg.arg2)));
-                        //asd = !asd;
                         break;
                 }
                 return false;
             }
         });
-        /*ReturnHandler = new Handler()
-        {
-            @Override
-            public void handleMessage(Message msg)
-            {
-                switch (msg.arg1)
-                {
-                    case 1:
-                        ChannelSignal Datas = (ChannelSignal) msg.obj;
-                        float temp[] = new float[500];
-                        //FileHandler.Write(Datas.Channel1Data,Datas.Channel1Size);
-                        Ch2Drawer.DrawDatas(Datas.Channel2Data,Datas.Channel2Size);
-                        System.arraycopy(Datas.Channel2Data,0, temp,0,Datas.Channel2Size);
-                        msg = RWaveDetectorThread.ToWorkingThread.obtainMessage();
-                        msg.arg2=Datas.Channel2Size;
-                        msg.arg1=1;
-                        msg.obj=temp;
-                        RWaveDetectorThread.ToWorkingThread.sendMessage(msg);
-                        break;
-                    case 2:
-                        break;
-                    case 3:
-                        t.setText("HRT: "+Float.toString(60*2000/((float)msg.arg2)));
-                        //asd = !asd;
-                        break;
-                }
-
-                //FileHandler.Write(Datas.Channel1Data,Datas.Channel1Size);
-                //FileHandler.TEST_Write(Datas.TEST_Date,Datas.TEST_DATA_Size);
-                //Ch1Drawer.DrawDatas(Datas.Channel1Data,Datas.Channel1Size);
-                //Ch2Drawer.DrawDatas(Datas.Channel2Data,Datas.Channel2Size);
-                //Ch3Drawer.DrawDatas(Datas.Channel3Data,Datas.Channel3Size);
-                //Ch4Drawer.DrawDatas(Datas.Channel4Data,Datas.Channel4Size);
-                //Ch5Drawer.DrawDatas(Datas.Channel5Data,Datas.Channel5Size);
-            }
-        };*/
 
         RWaveDetectorThread = new WorkingThread(context,ReturnHandler);
+        RWaveDetectorThread.setName("RWaveDetecting");
         RWaveDetectorThread.start();
         boolean vari;
         do
@@ -233,7 +196,13 @@ public class UsbEcgHAL extends AppCompatActivity {
     {
         int BytesWithBulk=0;
         byte temp2[] = new byte[64];
-        if(connection != null) BytesWithBulk=connection.bulkTransfer(WriteEndpoint,AskArray,AskArray.length,1);
+        if(connection != null)
+        {
+            do {
+                connection.bulkTransfer(ReadEndpoint,temp2,63,1);
+                BytesWithBulk = connection.bulkTransfer(WriteEndpoint, AskArray, AskArray.length, 5);
+            }while(BytesWithBulk != AskArray.length);
+        }
 
         if(BytesWithBulk == AskArray.length)
         {
@@ -256,7 +225,7 @@ public class UsbEcgHAL extends AppCompatActivity {
             int RawEcgData=0;
             do
             {
-                BytesWithBulk=connection.bulkTransfer(ReadEndpoint,temp2,63,1);
+                BytesWithBulk=connection.bulkTransfer(ReadEndpoint,temp2,63,5);
                 looper2=0;
                 while (BytesWithBulk > looper2)
                 {
@@ -428,6 +397,7 @@ public class UsbEcgHAL extends AppCompatActivity {
             {
                 BytesWithBulk=connection.bulkTransfer(ReadEndpoint,temp2,1,10);
             }while(BytesWithBulk>0);
+            Log.d("---UsbEcgHAL---","Asking failed");
         }
 
     }
@@ -455,6 +425,7 @@ public class UsbEcgHAL extends AppCompatActivity {
         Message msg = Thread.handler.obtainMessage();
         msg.arg1=1;
         Thread.handler.sendMessage(msg);
+        Thread.interrupt();
     }
     public void StopDataReadThread()
     {

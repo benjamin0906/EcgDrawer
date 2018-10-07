@@ -23,26 +23,7 @@ public class PeriodicalDataRefresherThread extends Thread {
     public CurveDrawer Ch4Drawer;
     public CurveDrawer Ch5Drawer;
 
-    private CountDownTimer DataRefreshTimer;/*= new CountDownTimer(Long.MAX_VALUE,50) {
-        @Override
-        public void onTick(long l) {
-            ecg.Read(EcgChannelSignals); //TODO: original
-            //ecg.TEST_Read(EcgChannelSignals);
-            Ch1Drawer.DrawDatas(EcgChannelSignals.Channel1Data,EcgChannelSignals.Channel1Size);
-            //Ch1Drawer.DrawDatas(EcgChannelSignals.Channel1Data,EcgChannelSignals.Channel1Size);
-            //Ch2Drawer.DrawDatas(EcgChannelSignals.Channel2Data,EcgChannelSignals.Channel2Size);
-            //Ch3Drawer.DrawDatas(EcgChannelSignals.Channel3Data,EcgChannelSignals.Channel3Size);
-            Message msg = mainHandler.obtainMessage();
-            msg.arg1=1;
-            msg.obj = EcgChannelSignals;
-            mainHandler.sendMessage(msg);
-        }
-
-        @Override
-        public void onFinish() {
-            this.start();
-        }
-    };*/
+    private CountDownTimer DataRefreshTimer;
 
     private void StartDataRefreshTimer()
     {
@@ -64,16 +45,10 @@ public class PeriodicalDataRefresherThread extends Thread {
                 switch (msg.arg1)
                 {
                     case 1: //start timer
-                        //StartDataRefreshTimer();
-                        DataRefreshTimer= new CountDownTimer(Long.MAX_VALUE,100) {
+                        DataRefreshTimer= new CountDownTimer(Long.MAX_VALUE,80) {
                             @Override
                             public void onTick(long l) {
-                                ecg.Read(EcgChannelSignals); //TODO: original
-                                //ecg.TEST_Read(EcgChannelSignals);
-                                //Ch1Drawer.DrawDatas(EcgChannelSignals.Channel1Data,EcgChannelSignals.Channel1Size);
-                                //Ch1Drawer.DrawDatas(EcgChannelSignals.Channel1Data,EcgChannelSignals.Channel1Size);
-                                //Ch2Drawer.DrawDatas(EcgChannelSignals.Channel2Data,EcgChannelSignals.Channel2Size);
-                                //Ch3Drawer.DrawDatas(EcgChannelSignals.Channel3Data,EcgChannelSignals.Channel3Size);
+                                ecg.Read(EcgChannelSignals);
                                 Message msg = mainHandler.obtainMessage();
                                 msg.arg1=1;
                                 msg.obj = EcgChannelSignals;
@@ -92,6 +67,7 @@ public class PeriodicalDataRefresherThread extends Thread {
                     case 3:
                         break;
                     case -1:
+                        /* Stoping the thread */
                         Looper.myLooper().quit();
                         break;
                 }

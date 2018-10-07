@@ -84,36 +84,6 @@ public class WorkingThread extends Thread
                 return false;
             }
         });
-        /*ReturnFromHelperThread = new Handler()
-        {
-            @Override
-            public void handleMessage(Message msg)
-            {
-                switch (msg.arg1)
-                {
-                    case 1:
-                        HelperThreadReady[0] = true;
-                        ReturnedResult[0] = (float) msg.obj;
-                        break;
-                    case 2:
-                        HelperThreadReady[1] = true;
-                        ReturnedResult[1] = (float) msg.obj;
-                        break;
-                    case 3:
-                        HelperThreadReady[2] = true;
-                        ReturnedResult[2] = (float) msg.obj;
-                        break;
-                    case 4:
-                        HelperThreadReady[3] = true;
-                        ReturnedResult[3] = (float) msg.obj;
-                        break;
-                    case 5:
-                        HelperThreadReady[4] = true;
-                        ReturnedResult[4] = (float) msg.obj;
-                        break;
-                }
-            }
-        };*/
     }
 
     @SuppressLint("HandlerLeak")
@@ -163,6 +133,7 @@ public class WorkingThread extends Thread
                         for(int looper = 0; looper<ThreadNumber; looper++)
                         {
                             HelperThread[looper] = new HelperThread(MainContext, ReturnFromHelperThread);
+                            HelperThread[looper].setName("HelperThread"+Integer.toString(looper));
                             HelperThread[looper].start();
                             while(HelperThread[looper].ToHelperThread == null);
                             ToHelperThreadMsg[looper] = HelperThread[looper].ToHelperThread.obtainMessage();
