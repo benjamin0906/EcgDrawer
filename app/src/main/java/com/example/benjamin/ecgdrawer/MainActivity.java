@@ -31,12 +31,8 @@ public class MainActivity extends AppCompatActivity {
     private Button ConnectButtonObj;
     private Button StartButtonObj;
     private Button LoadButtonObj;
-    private static TextView textView;
-    private TextView textView2;
     private TextView textView3;
     public static TextView textView4;
-
-    ChannelSignal Datas;
 
     private static final String s = "com.example.bodnrbenjamin.ecg1";
     private final float[] sinus = new float[10000];
@@ -70,8 +66,6 @@ public class MainActivity extends AppCompatActivity {
         StartButtonObj      =   findViewById(R.id.StartButton);
         LoadButtonObj       =   findViewById(R.id.LoadButton);
 
-        textView            =   findViewById(R.id.textView);
-        textView2           =   findViewById(R.id.textView2);
         textView3           =   findViewById(R.id.textView3);
         textView4           =   findViewById(R.id.textView4);
 
@@ -113,7 +107,6 @@ public class MainActivity extends AppCompatActivity {
         Ch5Drawer = new CurveDrawer(DataCanvas5);
         ecg=new UsbEcgHAL(this,s,0x2405,0xB, FileHandler);
         ecg.t2=textView4;
-        //ecg=new UsbEcgHAL(this,s,0x0461,0x0033);
         ecg.setTextView(textView3);
         ecg.t2 = textView4;
         ecg.Ch1Drawer=Ch1Drawer;

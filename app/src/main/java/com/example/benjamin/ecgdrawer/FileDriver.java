@@ -2,6 +2,7 @@ package com.example.benjamin.ecgdrawer;
 
 import android.content.Context;
 import android.os.Environment;
+import android.util.Log;
 import android.widget.TextView;
 
 import java.io.File;
@@ -19,23 +20,20 @@ public class FileDriver
     public TextView t;
     private File[] SavedFiles;
     private File WorkingFile;
-    FileWriter WorkingFileWriter;
-    FileReader WorkingFileReader;
-    FileOutputStream WorkingOutputStream;
-    FileInputStream WorkingInputStream;
+    private FileWriter WorkingFileWriter;
+    private FileReader WorkingFileReader;
+    private FileOutputStream WorkingOutputStream;
+    private FileInputStream WorkingInputStream;
     private Context MainContext;
     private File[] FilesInFolder;
     private final String ConstFileID="Ecg Data\n";
     private float[] DataBuffer;
-    private int[] TEST_DataBuffer;
     private int DataBufferCounter;
-    private int TEST_DataBufferCounter;
     public FileDriver(Context c,int BufferSize,TextView textView)
     {
         MainContext=c;
         t=textView;
         DataBuffer = new float[BufferSize];
-        TEST_DataBuffer = new int[6*BufferSize];
         DataBufferCounter=0;
     }
     public int Open()
@@ -97,78 +95,6 @@ public class FileDriver
         }
         return ret;
     }
-    public int TEST_Close()
-    {
-        int ret=0;
-        try
-        {
-            for(int looper=0;looper<TEST_DataBufferCounter;looper++)
-            {
-                WorkingFileWriter.write(Integer.toHexString(TEST_DataBuffer[looper])+"\n");
-                DataBuffer[looper]=0;
-            }
-            DataBufferCounter=0;
-            WorkingFileWriter.flush();
-            WorkingFileWriter.close();
-            WorkingFileReader.close();
-            WorkingInputStream.close();
-            WorkingOutputStream.close();
-        }
-        catch (IOException e)
-        {
-            ret = -1;
-        }
-        return ret;
-    }
-    public int TEST_Close2()
-    {
-        int ret=0;
-        try
-        {
-            for(int looper=0;looper<DataBufferCounter;looper++)
-            {
-                WorkingFileWriter.write(Float.toString(DataBuffer[looper])+"\t");
-                WorkingFileWriter.write(Integer.toHexString(TEST_DataBuffer[looper])+"\t");
-                WorkingFileWriter.write(Integer.toHexString(TEST_DataBuffer[looper+1])+"\t");
-                WorkingFileWriter.write(Integer.toHexString(TEST_DataBuffer[looper+2])+"\t");
-                WorkingFileWriter.write(Integer.toHexString(TEST_DataBuffer[looper+3])+"\t");
-                WorkingFileWriter.write(Integer.toHexString(TEST_DataBuffer[looper+4])+"\t");
-                WorkingFileWriter.write(Integer.toHexString(TEST_DataBuffer[looper+5])+"\n");
-                DataBuffer[looper]=0;
-            }
-            DataBufferCounter=0;
-            WorkingFileWriter.flush();
-            WorkingFileWriter.close();
-            WorkingFileReader.close();
-            WorkingInputStream.close();
-            WorkingOutputStream.close();
-        }
-        catch (IOException e)
-        {
-            ret = -1;
-        }
-        return ret;
-    }
-    public int TEST_Write(int[] Data, int Size)
-    {
-        int ret=0;
-        //try
-        {
-            for(int looper = 0; looper < Size; looper++)
-            {
-                //ret = (Float.floatToIntBits(Data[looper]));
-                //WorkingFileWriter.write(Integer.toHexString(Float.floatToIntBits(Data[looper]))+"\n");
-                TEST_DataBuffer[TEST_DataBufferCounter]=Data[looper];
-                TEST_DataBufferCounter++;
-                //t.setText(Integer.toString(DataBufferCounter));
-            }
-        }
-        /*catch (IOException e)
-        {
-            ret =-1;
-        }*/
-        return ret;
-    }
     public int Write(float[] Data, int Size)
     {
         int ret=0;
@@ -208,12 +134,13 @@ public class FileDriver
             try
             {
                 WorkingFileReader = new FileReader(FileTester);
-                WorkingFileReader.read(temp);
+                int asd = WorkingFileReader.read(temp);
                 WorkingFileReader.close();
                 if(Arrays.equals(temp,ConstFileID.toCharArray()))
                 {
                     AvailableFileCount++;
                 }
+                else Log.d("---FILEDRIVER---","izé");
             }
             catch (IOException e)
             {
@@ -222,13 +149,14 @@ public class FileDriver
         }
         FilesInFolder = new File[AvailableFileCount];
         AvailableFileCount=0;
+        temp = new char[ConstFileID.length()];
         for(looper=0;looper<TemporaryFileList.length;looper++)
         {
             FileTester = new File(MainContext.getExternalFilesDir(null),TemporaryFileList[looper].getName());
             try
             {
                 WorkingFileReader = new FileReader(FileTester);
-                WorkingFileReader.read(temp);
+                int asd = WorkingFileReader.read(temp);
                 WorkingFileReader.close();
                 if(Arrays.equals(temp,ConstFileID.toCharArray()))
                 {
