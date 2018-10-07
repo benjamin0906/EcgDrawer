@@ -68,7 +68,7 @@ public class PeriodicalDataRefresherThread extends Thread {
                         DataRefreshTimer= new CountDownTimer(Long.MAX_VALUE,80) {
                             @Override
                             public void onTick(long l) {
-                                ecg.Read(EcgChannelSignals); //TODO: original
+                                ecg.Read2(EcgChannelSignals); //TODO: original
                                 //ecg.TEST_Read(EcgChannelSignals);
                                 //Ch1Drawer.DrawDatas(EcgChannelSignals.Channel1Data,EcgChannelSignals.Channel1Size);
                                 //Ch1Drawer.DrawDatas(EcgChannelSignals.Channel1Data,EcgChannelSignals.Channel1Size);
