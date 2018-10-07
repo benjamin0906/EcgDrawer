@@ -57,8 +57,6 @@ public class UsbEcgHAL extends AppCompatActivity {
     public CurveDrawer Ch5Drawer;
     private FileDriver FileHandler;
     private WorkingThread RWaveDetectorThread;
-    byte Saved[][]= new byte[3200][63];
-    int SavedIter =0;
 
     public UsbEcgHAL(Context c, String s, int VID, int PID, FileDriver FH)
     {
@@ -211,14 +209,13 @@ public class UsbEcgHAL extends AppCompatActivity {
             boolean DSizeH=false;
             int CommandSign=0;
             int DSize=0;
-            int GlobalCounter11=0;
-            int GlobalCounter12=0;
-            int GlobalCounter13=0;
-            int GlobalCounter14=0;
-            int GlobalCounter15=0;
-            Data.TEST_DATA_Size=0;
+            Data.Channel1Size=0;
+            Data.Channel2Size=0;
+            Data.Channel3Size=0;
+            Data.Channel4Size=0;
+            Data.Channel5Size=0;
 
-            int Address=0;
+            byte Address=0;
             int looper=0;
             int GlobalLooper=0;
             int looper2;
@@ -260,24 +257,19 @@ public class UsbEcgHAL extends AppCompatActivity {
                             switch (Address)
                             {
                                 case 0x11:
-                                    Data.Channel1Data[GlobalCounter11]=EcgDataToFloat(RawEcgData);
-                                    GlobalCounter11++;
+                                    Data.Channel1Data[Data.Channel1Size++]=EcgDataToFloat(RawEcgData);
                                     break;
                                 case 0x12:
-                                    Data.Channel2Data[GlobalCounter12]=EcgDataToFloat(RawEcgData);
-                                    GlobalCounter12++;
+                                    Data.Channel2Data[Data.Channel2Size++]=EcgDataToFloat(RawEcgData);
                                     break;
                                 case 0x13:
-                                    Data.Channel3Data[GlobalCounter13]=EcgDataToFloat(RawEcgData);
-                                    GlobalCounter13++;
+                                    Data.Channel3Data[Data.Channel3Size++]=EcgDataToFloat(RawEcgData);
                                     break;
                                 case 0x14:
-                                    Data.Channel4Data[GlobalCounter14]=EcgDataToFloat(RawEcgData);
-                                    GlobalCounter14++;
+                                    Data.Channel4Data[Data.Channel4Size++]=EcgDataToFloat(RawEcgData);
                                     break;
                                 case 0x15:
-                                    Data.Channel5Data[GlobalCounter15]=EcgDataToFloat(RawEcgData);
-                                    GlobalCounter15++;
+                                    Data.Channel5Data[Data.Channel5Size++]=EcgDataToFloat(RawEcgData);
                                     break;
                                     default:
                                         if((0xff&Address) != 0x80)
@@ -295,13 +287,10 @@ public class UsbEcgHAL extends AppCompatActivity {
                                                                     looper -= 4;
                                                                 } else looper--;
                                                             }
-                                                            else {
-                                                                //if (temp2[looper2 + 1 - 4] == 0x80) {
-                                                                if (temp2[looper2 + 1 - 4] == 0x15) {
+                                                            else if (temp2[looper2 + 1 - 4] == 0x15) {
                                                                     looper2++;
                                                                     looper -= 4;
                                                                 } else looper--;
-                                                            }
                                                             break;
                                                         case 0x12:
                                                             if(looper2 < BytesWithBulk -1-4) {
@@ -310,12 +299,10 @@ public class UsbEcgHAL extends AppCompatActivity {
                                                                     looper -= 4;
                                                                 } else looper--;
                                                             }
-                                                            else {
-                                                                if (temp2[looper2 + 1 - 4] == 0x11) {
+                                                            else if (temp2[looper2 + 1 - 4] == 0x11) {
                                                                     looper2++;
                                                                     looper -= 4;
                                                                 } else looper--;
-                                                            }
                                                             break;
                                                         case 0x13:
                                                             if(looper2 < BytesWithBulk -1-4) {
@@ -324,12 +311,10 @@ public class UsbEcgHAL extends AppCompatActivity {
                                                                     looper -= 4;
                                                                 } else looper--;
                                                             }
-                                                            else {
-                                                                if (temp2[looper2 + 1 - 4] == 0x12) {
+                                                            else if (temp2[looper2 + 1 - 4] == 0x12) {
                                                                     looper2++;
                                                                     looper -= 4;
                                                                 } else looper--;
-                                                            }
                                                             break;
                                                         case 0x14:
                                                             if(looper2 < BytesWithBulk -1-4) {
@@ -338,27 +323,22 @@ public class UsbEcgHAL extends AppCompatActivity {
                                                                     looper -= 4;
                                                                 } else looper--;
                                                             }
-                                                            else {
-                                                                if (temp2[looper2 + 1 - 4] == 0x13) {
+                                                            else if (temp2[looper2 + 1 - 4] == 0x13) {
                                                                     looper2++;
                                                                     looper -= 4;
                                                                 } else looper--;
-                                                            }
                                                             break;
                                                         case 0x15:
                                                             if(looper2 < BytesWithBulk -1-4) {
-                                                                //if (temp2[looper2 + 1 + 4] == 0x80) {
                                                                 if (temp2[looper2 + 1 + 4] == 0x11) {
                                                                     looper2++;
                                                                     looper -= 4;
                                                                 } else looper--;
                                                             }
-                                                            else {
-                                                                if (temp2[looper2 + 1 - 4] == 0x14) {
+                                                            else if (temp2[looper2 + 1 - 4] == 0x14) {
                                                                     looper2++;
                                                                     looper -= 4;
                                                                 } else looper--;
-                                                            }
                                                             break;
                                                             default:
                                                                 looper--;
@@ -368,7 +348,7 @@ public class UsbEcgHAL extends AppCompatActivity {
                                         }
                             }
                             RawEcgData=0;
-                            Address = 0xff&temp2[looper2];
+                            Address = temp2[looper2];
                             GlobalLooper++;
                         }
                         else RawEcgData |= (0xFF&(int)temp2[looper2]) << (8 * (3 - (looper % 4)));
@@ -376,19 +356,8 @@ public class UsbEcgHAL extends AppCompatActivity {
                     }
                     looper2++;
                 }
-                if(SavedIter<3000)
-                {
-                    System.arraycopy(temp2,0,Saved[SavedIter],0,63);
-                    SavedIter++;
-                }
 
             } while ((GlobalLooper < DSize || !Header) && BytesWithBulk>=0);
-            //Log.d("---UsbEcgHAL---","Time: "+Long.toString((System.currentTimeMillis()-time)));
-            Data.Channel1Size=GlobalCounter11;
-            Data.Channel2Size=GlobalCounter12;
-            Data.Channel3Size=GlobalCounter13;
-            Data.Channel4Size=GlobalCounter14;
-            Data.Channel5Size=GlobalCounter15;
             while (BytesWithBulk>0) BytesWithBulk=connection.bulkTransfer(ReadEndpoint,temp2,63,2);
         }
         else
@@ -404,7 +373,6 @@ public class UsbEcgHAL extends AppCompatActivity {
     public void close()
     {
         if(connection != null) connection.close();
-        //manager.cl
     }
     public void StartDataReadThread(boolean SavingNeeded)
     {
@@ -418,8 +386,6 @@ public class UsbEcgHAL extends AppCompatActivity {
         Thread.Ch4Drawer=this.Ch4Drawer;
         Thread.Ch5Drawer=this.Ch5Drawer;
         Thread.setName("PeriodicalDataRefresherThread");
-
-
         Thread.start();
         while (Thread.handler == null);
         Message msg = Thread.handler.obtainMessage();
@@ -433,6 +399,5 @@ public class UsbEcgHAL extends AppCompatActivity {
         Message msg = Thread.handler.obtainMessage();
         msg.arg1=-1;
         Thread.handler.sendMessage(msg);
-        //Thread.stop(); //TODO: This is not working, if this is executed the app is crashed.
     }
 }

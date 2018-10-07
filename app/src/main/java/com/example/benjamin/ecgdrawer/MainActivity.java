@@ -91,7 +91,6 @@ public class MainActivity extends AppCompatActivity {
 
         FileHandler = new FileDriver(this,200000,textView4);
 
-
         DisplayMetrics dm=new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(dm);
 
@@ -105,12 +104,6 @@ public class MainActivity extends AppCompatActivity {
         DataCanvas4.requestLayout();
         DataCanvas5.getLayoutParams().width = dm.widthPixels*5/6;
         DataCanvas5.requestLayout();
-
-        for(int looper=0;looper<sinus.length;looper++) sinus[looper] = (float) Math.sin(2*Math.PI /(sinus.length)*looper);
-        sinus[0]=(float)11.1111;
-        //FileHandler.Open();
-        //FileHandler.Write(sinus,sinus.length);
-        //FileHandler.Close();
 
         Ch1Drawer = new CurveDrawer(DataCanvas1);
         Ch1Drawer.t=textView4;
@@ -144,7 +137,6 @@ public class MainActivity extends AppCompatActivity {
         }
         else /* Measure has to be started */
         {
-            //Ch1Drawer.DrawDatas(sinus,sinus.length);
             FileHandler.Open();
             ecg.StartDataReadThread(false);
             StartButtonObj.setText(StopString);

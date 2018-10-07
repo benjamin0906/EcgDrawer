@@ -17,9 +17,6 @@ public class ChannelSignal {
     public int Channel4Size;
     public int Channel5Size;
 
-    public int TEST_Date[];
-    public int TEST_DATA_Size = 0;
-
     public ChannelSignal(int size)
     {
         Channel1Data = new float[size];
@@ -33,8 +30,5 @@ public class ChannelSignal {
         Channel3Size = 0;
         Channel4Size = 0;
         Channel5Size = 0;
-
-        TEST_Date = new int[6*size];
-        TEST_DATA_Size = 0;
     }
 }
