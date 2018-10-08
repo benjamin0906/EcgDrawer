@@ -167,37 +167,36 @@ public class MainActivity extends AppCompatActivity {
             ListView FileListView = FileListDialog.findViewById(R.id.FileListView);
 
             /* Get the files */
-            FileHandler.RefreshFileList();
-            File[] TemporaryFileContainer = FileHandler.GetFiles();
-            final String[] Files = new String[TemporaryFileContainer.length];
-            for(int looper=0; looper<TemporaryFileContainer.length; looper++) Files[looper] = TemporaryFileContainer[looper].getName();
+            if(-1 != FileHandler.RefreshFileList())
+            {
+                File[] TemporaryFileContainer = FileHandler.GetFiles();
+                final String[] Files = new String[TemporaryFileContainer.length];
+                for (int looper = 0; looper < TemporaryFileContainer.length; looper++) Files[looper] = TemporaryFileContainer[looper].getName();
 
-            final List<String> fruits_list = new ArrayList<>(Arrays.asList(Files));
-            final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, fruits_list);
+                final List<String> fruits_list = new ArrayList<>(Arrays.asList(Files));
+                final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, fruits_list);
+                FileListView.setAdapter(arrayAdapter);
 
-            FileListView.setAdapter(arrayAdapter);
-
-            /* This function will be called when an item from the list is called. */
-            FileListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    //textView4.append(" "+Integer.toString(position));
-                    textView3.setText(Files[position]);
-                    if(0==FileHandler.Open(Files[position]))
-                    {
-                        DataFromFile = FileHandler.Read();
-                        if(DataFromFile.length!=0)
-                        {
-                            //TODO: Some error handling is needed if the file is wrong!!
+                /* This function will be called when an item from the list is called. */
+                FileListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        //textView4.append(" "+Integer.toString(position));
+                        textView3.setText(Files[position]);
+                        if (0 == FileHandler.Open(Files[position])) {
+                            DataFromFile = FileHandler.Read();
+                            if (DataFromFile.length != 0) {
+                                //TODO: Some error handling is needed if the file is wrong!!
+                            }
                         }
+                        FileListDialog.cancel();
                     }
-                    FileListDialog.cancel();
-                }
-            });
+                });
 
-            FileListDialog.setCancelable(true);
-            FileListDialog.setTitle(FilesString);
-            FileListDialog.show();
+                FileListDialog.setCancelable(true);
+                FileListDialog.setTitle(FilesString);
+                FileListDialog.show();
+            }
         }
         else /* Clear this file */
         {

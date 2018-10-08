@@ -12,6 +12,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.attribute.FileTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 
@@ -25,7 +26,7 @@ public class FileDriver
     private FileOutputStream WorkingOutputStream;
     private FileInputStream WorkingInputStream;
     private Context MainContext;
-    private File[] FilesInFolder;
+    ArrayList<File> FilesInFolder2;
     private final String ConstFileID="Ecg Data\n";
     private float[] DataBuffer;
     private int DataBufferCounter;
@@ -35,6 +36,7 @@ public class FileDriver
         t=textView;
         DataBuffer = new float[BufferSize];
         DataBufferCounter=0;
+        FilesInFolder2 = new ArrayList<File>();
     }
     public int Open()
     {
@@ -117,60 +119,39 @@ public class FileDriver
     }
     public File[] GetFiles()
     {
-        return FilesInFolder;
+        File[] ret = new File[FilesInFolder2.size()];
+        ret = FilesInFolder2.toArray(ret);
+        return ret;
     }
-    public void RefreshFileList()
+    public int RefreshFileList()
     {
         int looper;
+        int ret=0;
         WorkingFile = new File(MainContext.getExternalFilesDir(null).getAbsolutePath());
         File[] TemporaryFileList = WorkingFile.listFiles();
         char[] temp = new char[ConstFileID.length()];
+        FilesInFolder2.clear();
         File FileTester;
-        int error=0;
-        int AvailableFileCount=0;
         for(looper=0;looper<TemporaryFileList.length;looper++)
         {
             FileTester = new File(MainContext.getExternalFilesDir(null),TemporaryFileList[looper].getName());
             try
             {
                 WorkingFileReader = new FileReader(FileTester);
-                int asd = WorkingFileReader.read(temp);
+                WorkingFileReader.read(temp);
                 WorkingFileReader.close();
                 if(Arrays.equals(temp,ConstFileID.toCharArray()))
                 {
-                    AvailableFileCount++;
-                }
-                else Log.d("---FILEDRIVER---","izé");
-            }
-            catch (IOException e)
-            {
-                error = -1;
-            }
-        }
-        FilesInFolder = new File[AvailableFileCount];
-        AvailableFileCount=0;
-        temp = new char[ConstFileID.length()];
-        for(looper=0;looper<TemporaryFileList.length;looper++)
-        {
-            FileTester = new File(MainContext.getExternalFilesDir(null),TemporaryFileList[looper].getName());
-            try
-            {
-                WorkingFileReader = new FileReader(FileTester);
-                int asd = WorkingFileReader.read(temp);
-                WorkingFileReader.close();
-                if(Arrays.equals(temp,ConstFileID.toCharArray()))
-                {
-                    FilesInFolder[AvailableFileCount]=FileTester;
-                    AvailableFileCount++;
+                    FilesInFolder2.add(FileTester);
                 }
             }
             catch (IOException e)
             {
-                error = -1;
+                ret--;
             }
         }
-        //WorkingFile = new File(MainContext.getExternalFilesDir(null).getAbsolutePath());
-        //FilesInFolder = WorkingFile.listFiles();
+        if(FilesInFolder2.size() > 0) ret = FilesInFolder2.size();
+        return ret;
     }
     public float[] Read()
     {
