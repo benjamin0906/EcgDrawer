@@ -22,6 +22,8 @@ public class PeriodicalDataRefresherThread extends Thread {
     public CurveDrawer Ch3Drawer;
     public CurveDrawer Ch4Drawer;
     public CurveDrawer Ch5Drawer;
+    private int SampleCounter=0;
+    private int Size;
 
     private CountDownTimer DataRefreshTimer;
 
@@ -45,21 +47,65 @@ public class PeriodicalDataRefresherThread extends Thread {
                 switch (msg.arg1)
                 {
                     case 1: //start timer
-                        DataRefreshTimer= new CountDownTimer(Long.MAX_VALUE,80) {
-                            @Override
-                            public void onTick(long l) {
-                                ecg.Read(EcgChannelSignals);
-                                Message msg = mainHandler.obtainMessage();
-                                msg.arg1=1;
-                                msg.obj = EcgChannelSignals;
-                                mainHandler.sendMessage(msg);
-                            }
+                        if(msg.arg2 == 0)
+                        {
+                            DataRefreshTimer = new CountDownTimer(Long.MAX_VALUE, 80) {
+                                @Override
+                                public void onTick(long l) {
+                                    ecg.Read(EcgChannelSignals);
+                                    Message msg = mainHandler.obtainMessage();
+                                    msg.arg1 = 1;
+                                    msg.obj = EcgChannelSignals;
+                                    mainHandler.sendMessage(msg);
+                                }
 
-                            @Override
-                            public void onFinish() {
-                                this.start();
-                            }
-                        }.start();
+                                @Override
+                                public void onFinish() {
+                                    this.start();
+                                }
+                            }.start();
+                        }
+                        else
+                        {
+                            EcgChannelSignals = (ChannelSignal) msg.obj;
+                            Size = EcgChannelSignals.Channel1Size;
+                            DataRefreshTimer = new CountDownTimer(Long.MAX_VALUE, 80) {
+                                @Override
+                                public void onTick(long l) {
+                                    if((Size-SampleCounter)>160)
+                                    {
+                                        System.arraycopy(EcgChannelSignals.Channel1Data,SampleCounter,EcgChannelSignals.Channel1Data,0,160);
+                                        SampleCounter += 160;
+                                        EcgChannelSignals.Channel1Size = 160;
+                                    }
+                                    else
+                                    {
+                                        if((-SampleCounter) > 0)
+                                        {
+                                            System.arraycopy(EcgChannelSignals.Channel1Data, SampleCounter, EcgChannelSignals.Channel1Data, 0, (Size - SampleCounter));
+                                            SampleCounter += (Size-SampleCounter);
+                                            EcgChannelSignals.Channel1Size= (Size-SampleCounter);
+                                        }
+                                        else
+                                        {
+                                            DataRefreshTimer.cancel();
+                                            Looper.myLooper().quit();
+                                        }
+                                    }
+
+
+                                    Message msg = mainHandler.obtainMessage();
+                                    msg.arg1 = 1;
+                                    msg.obj = EcgChannelSignals;
+                                    mainHandler.sendMessage(msg);
+                                }
+
+                                @Override
+                                public void onFinish() {
+                                    this.start();
+                                }
+                            }.start();
+                        }
                         break;
                     case 2: //stop timer
                         StopDataRefreshTimer();

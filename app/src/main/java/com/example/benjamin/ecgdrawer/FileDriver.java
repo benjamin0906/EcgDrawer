@@ -81,7 +81,15 @@ public class FileDriver
         {
             for(int looper=0;looper<DataBufferCounter;looper++)
             {
-                WorkingFileWriter.write(Integer.toHexString(Float.floatToIntBits(DataBuffer[looper]))+"\n");
+                String temp = Integer.toHexString(Float.floatToIntBits(DataBuffer[looper]))+"\n";
+                if(temp.length() < 9)
+                {
+                    while (9>temp.length())
+                    {
+                        temp = "0"+temp;
+                    }
+                }
+                WorkingFileWriter.write(temp);
                 DataBuffer[looper]=0;
             }
             DataBufferCounter=0;
@@ -153,14 +161,14 @@ public class FileDriver
         if(FilesInFolder2.size() > 0) ret = FilesInFolder2.size();
         return ret;
     }
-    public float[] Read()
+    public ChannelSignal Read()
     {
         byte[] a= new byte[(int)WorkingFile.length()];
-        float[] b;
+        ChannelSignal b;
         try
         {
             WorkingInputStream.read(a);
-            b= new float[(int)WorkingFile.length()];
+            b= new ChannelSignal((int)WorkingFile.length());
             char[] temp = new char[8];
             for(int looper2=0;looper2<(a.length-ConstFileID.length())/9;looper2++)
             {
@@ -170,13 +178,14 @@ public class FileDriver
                     temp[looper] = (char)a[looper+ConstFileID.length() + looper2*9];
                 }
                 String asd = String.copyValueOf(temp);
-                Integer asd2 = Integer.parseInt(asd,16);
-                b[looper2] = (Float.intBitsToFloat(asd2.intValue()));
+                Long asd2 = Long.parseLong(asd,16);
+                b.Channel1Data[looper2] = (Float.intBitsToFloat(asd2.intValue()));
+                b.Channel1Size++;
             }
         }
         catch (IOException e)
         {
-            b= new float[0];
+            b= null;
         }
         return b;
     }
