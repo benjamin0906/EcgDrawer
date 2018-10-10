@@ -3,6 +3,7 @@ package com.example.benjamin.ecgdrawer;
 import android.app.Dialog;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -35,7 +36,6 @@ public class MainActivity extends AppCompatActivity {
     public static TextView textView4;
 
     private static final String s = "com.example.bodnrbenjamin.ecg1";
-    private final float[] sinus = new float[10000];
 
     private UsbEcgHAL ecg;
     public int[][] RefreshedData;
@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
     public CurveDrawer Ch4Drawer;
     public CurveDrawer Ch5Drawer;
 
-    private float[] DataFromFile;
+    private ChannelSignal DataFromFile;
 
     DrawView DataCanvas1;
     DrawView DataCanvas2;
@@ -99,21 +99,21 @@ public class MainActivity extends AppCompatActivity {
         DataCanvas5.getLayoutParams().width = dm.widthPixels*5/6;
         DataCanvas5.requestLayout();
 
-        Ch1Drawer = new CurveDrawer(DataCanvas1);
+        Ch1Drawer       =   new CurveDrawer(DataCanvas1);
         Ch1Drawer.t=textView4;
-        Ch2Drawer = new CurveDrawer(DataCanvas2);
-        Ch3Drawer = new CurveDrawer(DataCanvas3);
-        Ch4Drawer = new CurveDrawer(DataCanvas4);
-        Ch5Drawer = new CurveDrawer(DataCanvas5);
-        ecg=new UsbEcgHAL(this,s,0x2405,0xB, FileHandler);
-        ecg.t2=textView4;
+        Ch2Drawer       =   new CurveDrawer(DataCanvas2);
+        Ch3Drawer       =   new CurveDrawer(DataCanvas3);
+        Ch4Drawer       =   new CurveDrawer(DataCanvas4);
+        Ch5Drawer       =   new CurveDrawer(DataCanvas5);
+        ecg             =   new UsbEcgHAL(this,s,0x2405,0xB, FileHandler);
+        ecg.t2          =   textView4;
         ecg.setTextView(textView3);
-        ecg.t2 = textView4;
-        ecg.Ch1Drawer=Ch1Drawer;
-        ecg.Ch2Drawer=Ch2Drawer;
-        ecg.Ch3Drawer=Ch3Drawer;
-        ecg.Ch4Drawer=Ch4Drawer;
-        ecg.Ch5Drawer=Ch5Drawer;
+        ecg.t2          =   textView4;
+        ecg.Ch1Drawer   =   Ch1Drawer;
+        ecg.Ch2Drawer   =   Ch2Drawer;
+        ecg.Ch3Drawer   =   Ch3Drawer;
+        ecg.Ch4Drawer   =   Ch4Drawer;
+        ecg.Ch5Drawer   =   Ch5Drawer;
     }
 
     public void StartButtonOnClick(View v)
@@ -173,20 +173,23 @@ public class MainActivity extends AppCompatActivity {
                 final String[] Files = new String[TemporaryFileContainer.length];
                 for (int looper = 0; looper < TemporaryFileContainer.length; looper++) Files[looper] = TemporaryFileContainer[looper].getName();
 
-                final List<String> fruits_list = new ArrayList<>(Arrays.asList(Files));
-                final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, fruits_list);
+                final List<String> FileList = new ArrayList<>(Arrays.asList(Files));
+                final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, FileList);
                 FileListView.setAdapter(arrayAdapter);
 
                 /* This function will be called when an item from the list is called. */
                 FileListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        //textView4.append(" "+Integer.toString(position));
-                        textView3.setText(Files[position]);
                         if (0 == FileHandler.Open(Files[position])) {
                             DataFromFile = FileHandler.Read();
-                            if (DataFromFile.length != 0) {
-                                //TODO: Some error handling is needed if the file is wrong!!
+                            if (DataFromFile != null) {
+                                /*DataFromFile = new ChannelSignal(15000);
+                                for(DataFromFile.Channel1Size=0;DataFromFile.Channel1Size<15000;DataFromFile.Channel1Size++)
+                                {
+                                    DataFromFile.Channel1Data[DataFromFile.Channel1Size] = DataFromFile.Channel1Size%500;
+                                }//*/
+                                ecg.StartSavedDataReadThread(DataFromFile);
                             }
                         }
                         FileListDialog.cancel();

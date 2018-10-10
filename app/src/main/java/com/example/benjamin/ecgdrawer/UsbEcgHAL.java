@@ -390,6 +390,7 @@ public class UsbEcgHAL extends AppCompatActivity {
         while (Thread.handler == null);
         Message msg = Thread.handler.obtainMessage();
         msg.arg1=1;
+        msg.arg2=0;
         Thread.handler.sendMessage(msg);
         Thread.interrupt();
     }
@@ -399,5 +400,27 @@ public class UsbEcgHAL extends AppCompatActivity {
         Message msg = Thread.handler.obtainMessage();
         msg.arg1=-1;
         Thread.handler.sendMessage(msg);
+    }
+
+    public void StartSavedDataReadThread(ChannelSignal data)
+    {
+        Thread = new PeriodicalDataRefresherThread();
+        Thread.ecg = this;
+        Thread.mainHandler  =   ReturnHandler;
+        Thread.RefreshedData=   RefreshedData;
+        Thread.Ch1Drawer    =   this.Ch1Drawer;
+        Thread.Ch2Drawer    =   this.Ch2Drawer;
+        Thread.Ch3Drawer    =   this.Ch3Drawer;
+        Thread.Ch4Drawer    =   this.Ch4Drawer;
+        Thread.Ch5Drawer    =   this.Ch5Drawer;
+        Thread.setName("PeriodicalDataRefresherThread");
+        Thread.start();
+        while (Thread.handler == null);
+        Message msg = Thread.handler.obtainMessage();
+        msg.arg1=1;
+        msg.arg2 = 1;
+        msg.obj = data;
+        Thread.handler.sendMessage(msg);
+        Thread.interrupt();
     }
 }
