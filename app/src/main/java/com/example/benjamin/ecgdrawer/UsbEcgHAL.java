@@ -37,6 +37,8 @@ public class UsbEcgHAL extends AppCompatActivity {
     byte AskArray[] = new byte[4];
     byte AskCommand = 0x01;
     private PeriodicalDataRefresherThread Thread;
+    private boolean Loading=false;
+    private boolean Saving = false;
 
     private PendingIntent       mPermissionIntent;
     private UsbManager          manager;
@@ -57,6 +59,7 @@ public class UsbEcgHAL extends AppCompatActivity {
     public CurveDrawer Ch5Drawer;
     private FileDriver FileHandler;
     private WorkingThread RWaveDetectorThread;
+    private static final float ScaleFactor = (float)4*(float)1.8/(float)1.4/(float)16777216;
 
     public UsbEcgHAL(Context c, String s, int VID, int PID, FileDriver FH)
     {
@@ -77,7 +80,7 @@ public class UsbEcgHAL extends AppCompatActivity {
                     case 1:
                         ChannelSignal Datas = (ChannelSignal) msg.obj;
                         float temp[] = new float[500];
-                        //FileHandler.Write(Datas.Channel1Data,Datas.Channel1Size);
+                        if(Saving) FileHandler.Write(Datas);
                         Ch1Drawer.DrawDatas(Datas.Channel1Data,Datas.Channel1Size);
                         Ch2Drawer.DrawDatas(Datas.Channel2Data,Datas.Channel2Size);
                         System.arraycopy(Datas.Channel2Data,0, temp,0,Datas.Channel2Size);
@@ -181,7 +184,6 @@ public class UsbEcgHAL extends AppCompatActivity {
         this.t=t;
     }
 
-    private static final float ScaleFactor = (float)4*(float)1.8/(float)1.4/(float)16777216;
     private float EcgDataToFloat(int data)
     {
         int sData;
@@ -189,7 +191,6 @@ public class UsbEcgHAL extends AppCompatActivity {
         else sData=data;
         return (float) sData*ScaleFactor;
     }
-
     public void Read(ChannelSignal Data)
     {
         int BytesWithBulk=0;
@@ -396,14 +397,16 @@ public class UsbEcgHAL extends AppCompatActivity {
     }
     public void StopDataReadThread()
     {
-        FileHandler.Close();
         Message msg = Thread.handler.obtainMessage();
         msg.arg1=-1;
         Thread.handler.sendMessage(msg);
+        if(Saving) FileHandler.Close();
+        Loading= false;
+        Saving = false;
     }
-
     public void StartSavedDataReadThread(ChannelSignal data)
     {
+        Loading=true;
         Thread = new PeriodicalDataRefresherThread();
         Thread.ecg = this;
         Thread.mainHandler  =   ReturnHandler;

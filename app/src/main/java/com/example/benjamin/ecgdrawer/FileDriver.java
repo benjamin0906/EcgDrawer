@@ -1,9 +1,6 @@
 package com.example.benjamin.ecgdrawer;
 
 import android.content.Context;
-import android.os.Environment;
-import android.util.Log;
-import android.widget.TextView;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,15 +8,12 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 
 public class FileDriver
 {
-    public TextView t;
-    private File[] SavedFiles;
     private File WorkingFile;
     private FileWriter WorkingFileWriter;
     private FileReader WorkingFileReader;
@@ -28,21 +22,17 @@ public class FileDriver
     private Context MainContext;
     ArrayList<File> FilesInFolder2;
     private final String ConstFileID="Ecg Data\n";
-    private float[] DataBuffer;
-    private int DataBufferCounter;
-    public FileDriver(Context c,int BufferSize,TextView textView)
+    private ChannelSignal DataBuffer;
+    public FileDriver(Context c, int BufferSize)
     {
         MainContext=c;
-        t=textView;
-        DataBuffer = new float[BufferSize];
-        DataBufferCounter=0;
+        DataBuffer = new ChannelSignal(BufferSize);
         FilesInFolder2 = new ArrayList<File>();
     }
     public int Open()
     {
         int ret=0;
         WorkingFile = new File(MainContext.getExternalFilesDir(null), Calendar.getInstance().getTime().toString()+".txt");
-        t.setText(WorkingFile.getAbsolutePath());
         try
         {
             WorkingFile.createNewFile();
@@ -74,25 +64,85 @@ public class FileDriver
         }
         return ret;
     }
+    private String FloatTo8DigitHex(float data)
+    {
+        String ret = Integer.toHexString(Float.floatToIntBits(data));
+        if(ret.length() < 8)
+        {
+            while (8>ret.length())
+            {
+                ret = "0"+ret;
+            }
+        }
+        return ret;
+    }
     public int Close()
     {
         int ret=0;
+        int looper1=0;
+        int looper2=0;
+        int looper3=0;
+        int looper4=0;
+        int looper5=0;
+        boolean ready = false;
         try
         {
-            for(int looper=0;looper<DataBufferCounter;looper++)
+            while(!ready)
             {
-                String temp = Integer.toHexString(Float.floatToIntBits(DataBuffer[looper]))+"\n";
-                if(temp.length() < 9)
+                if(looper1<DataBuffer.Channel1Size)
                 {
-                    while (9>temp.length())
-                    {
-                        temp = "0"+temp;
-                    }
+                    WorkingFileWriter.write(FloatTo8DigitHex(DataBuffer.Channel1Data[looper1])+"\t");
+                    looper1++;
                 }
-                WorkingFileWriter.write(temp);
-                DataBuffer[looper]=0;
+                else if(!ready)
+                {
+                    WorkingFileWriter.write(FloatTo8DigitHex(DataBuffer.Channel1Data[(looper1-1<0)?0:(looper1-1)])+"\t");
+                }
+                if(looper2<DataBuffer.Channel2Size)
+                {
+                    WorkingFileWriter.write(FloatTo8DigitHex(DataBuffer.Channel2Data[looper2])+"\t");
+                    looper2++;
+                }
+                else if(!ready)
+                {
+                    WorkingFileWriter.write(FloatTo8DigitHex(DataBuffer.Channel2Data[(looper2-1<0)?0:(looper2-1)])+"\t");
+                }
+                if(looper3<DataBuffer.Channel3Size)
+                {
+                    WorkingFileWriter.write(FloatTo8DigitHex(DataBuffer.Channel3Data[looper3])+"\t");
+                    looper3++;
+                }
+                else if(!ready)
+                {
+                    WorkingFileWriter.write(FloatTo8DigitHex(DataBuffer.Channel3Data[(looper3-1<0)?0:(looper3-1)])+"\t");
+                }
+                if(looper4<DataBuffer.Channel4Size)
+                {
+                    WorkingFileWriter.write(FloatTo8DigitHex(DataBuffer.Channel4Data[looper4])+"\t");
+                    looper4++;
+                }
+                else if(!ready)
+                {
+                    WorkingFileWriter.write(FloatTo8DigitHex(DataBuffer.Channel4Data[(looper4-1<0)?0:(looper4-1)])+"\t");
+                }
+                if(looper5<DataBuffer.Channel5Size)
+                {
+                    WorkingFileWriter.write(FloatTo8DigitHex(DataBuffer.Channel5Data[looper5])+"\n");
+                    looper5++;
+                }
+                else if(!ready)
+                {
+                    WorkingFileWriter.write(FloatTo8DigitHex(DataBuffer.Channel5Data[(looper5-1<0)?0:(looper5-1)])+"\n");
+                }
+                if((looper1>=DataBuffer.Channel1Size)||
+                        (looper2>=DataBuffer.Channel2Size)||
+                        (looper3>=DataBuffer.Channel3Size)||
+                        (looper4>=DataBuffer.Channel4Size)||
+                        (looper5>=DataBuffer.Channel5Size))
+                {
+                    ready=true;
+                }
             }
-            DataBufferCounter=0;
             WorkingFileWriter.flush();
             WorkingFileWriter.close();
             WorkingFileReader.close();
@@ -105,24 +155,19 @@ public class FileDriver
         }
         return ret;
     }
-    public int Write(float[] Data, int Size)
+    public int Write(ChannelSignal data)
     {
         int ret=0;
-        //try
-        {
-            for(int looper = 0; looper < Size; looper++)
-            {
-                //ret = (Float.floatToIntBits(Data[looper]));
-                //WorkingFileWriter.write(Integer.toHexString(Float.floatToIntBits(Data[looper]))+"\n");
-                DataBuffer[DataBufferCounter]=Data[looper];
-                DataBufferCounter++;
-                //t.setText(Integer.toString(DataBufferCounter));
-            }
-        }
-        /*catch (IOException e)
-        {
-            ret =-1;
-        }*/
+        System.arraycopy(data.Channel1Data,0,DataBuffer.Channel1Data,DataBuffer.Channel1Size,data.Channel1Size);
+        System.arraycopy(data.Channel2Data,0,DataBuffer.Channel2Data,DataBuffer.Channel2Size,data.Channel2Size);
+        System.arraycopy(data.Channel3Data,0,DataBuffer.Channel3Data,DataBuffer.Channel3Size,data.Channel3Size);
+        System.arraycopy(data.Channel4Data,0,DataBuffer.Channel4Data,DataBuffer.Channel4Size,data.Channel4Size);
+        System.arraycopy(data.Channel5Data,0,DataBuffer.Channel5Data,DataBuffer.Channel5Size,data.Channel5Size);
+        DataBuffer.Channel1Size+=data.Channel1Size;
+        DataBuffer.Channel2Size+=data.Channel2Size;
+        DataBuffer.Channel3Size+=data.Channel3Size;
+        DataBuffer.Channel4Size+=data.Channel4Size;
+        DataBuffer.Channel5Size+=data.Channel5Size;
         return ret;
     }
     public File[] GetFiles()
@@ -179,8 +224,25 @@ public class FileDriver
                 }
                 String asd = String.copyValueOf(temp);
                 Long asd2 = Long.parseLong(asd,16);
-                b.Channel1Data[looper2] = (Float.intBitsToFloat(asd2.intValue()));
-                b.Channel1Size++;
+                switch (looper2%5)
+                {
+                    case 0:
+                        b.Channel1Data[b.Channel1Size++] = (Float.intBitsToFloat(asd2.intValue()));
+                        break;
+                    case 1:
+                        b.Channel2Data[b.Channel2Size++] = (Float.intBitsToFloat(asd2.intValue()));
+                        break;
+                    case 2:
+                        b.Channel3Data[b.Channel3Size++] = (Float.intBitsToFloat(asd2.intValue()));
+                        break;
+                    case 3:
+                        b.Channel4Data[b.Channel4Size++] = (Float.intBitsToFloat(asd2.intValue()));
+                        break;
+                    case 4:
+                        b.Channel5Data[b.Channel5Size++] = (Float.intBitsToFloat(asd2.intValue()));
+                        break;
+                }
+
             }
         }
         catch (IOException e)

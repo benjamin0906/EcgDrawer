@@ -3,7 +3,6 @@ package com.example.benjamin.ecgdrawer;
 import android.app.Dialog;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -83,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
 
         RefreshedData = new int[5][2200];
 
-        FileHandler = new FileDriver(this,200000,textView4);
+        FileHandler = new FileDriver(this,200000);
 
         DisplayMetrics dm=new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(dm);

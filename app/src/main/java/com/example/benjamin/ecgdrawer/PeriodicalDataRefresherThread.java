@@ -75,16 +75,32 @@ public class PeriodicalDataRefresherThread extends Thread {
                                     if((Size-SampleCounter)>160)
                                     {
                                         System.arraycopy(EcgChannelSignals.Channel1Data,SampleCounter,EcgChannelSignals.Channel1Data,0,160);
+                                        System.arraycopy(EcgChannelSignals.Channel2Data,SampleCounter,EcgChannelSignals.Channel2Data,0,160);
+                                        System.arraycopy(EcgChannelSignals.Channel3Data,SampleCounter,EcgChannelSignals.Channel3Data,0,160);
+                                        System.arraycopy(EcgChannelSignals.Channel4Data,SampleCounter,EcgChannelSignals.Channel4Data,0,160);
+                                        System.arraycopy(EcgChannelSignals.Channel5Data,SampleCounter,EcgChannelSignals.Channel5Data,0,160);
                                         SampleCounter += 160;
                                         EcgChannelSignals.Channel1Size = 160;
+                                        EcgChannelSignals.Channel2Size = 160;
+                                        EcgChannelSignals.Channel3Size = 160;
+                                        EcgChannelSignals.Channel4Size = 160;
+                                        EcgChannelSignals.Channel5Size = 160;
                                     }
                                     else
                                     {
                                         if((-SampleCounter) > 0)
                                         {
                                             System.arraycopy(EcgChannelSignals.Channel1Data, SampleCounter, EcgChannelSignals.Channel1Data, 0, (Size - SampleCounter));
+                                            System.arraycopy(EcgChannelSignals.Channel2Data, SampleCounter, EcgChannelSignals.Channel2Data, 0, (Size - SampleCounter));
+                                            System.arraycopy(EcgChannelSignals.Channel3Data, SampleCounter, EcgChannelSignals.Channel3Data, 0, (Size - SampleCounter));
+                                            System.arraycopy(EcgChannelSignals.Channel4Data, SampleCounter, EcgChannelSignals.Channel4Data, 0, (Size - SampleCounter));
+                                            System.arraycopy(EcgChannelSignals.Channel5Data, SampleCounter, EcgChannelSignals.Channel5Data, 0, (Size - SampleCounter));
                                             SampleCounter += (Size-SampleCounter);
                                             EcgChannelSignals.Channel1Size= (Size-SampleCounter);
+                                            EcgChannelSignals.Channel2Size= (Size-SampleCounter);
+                                            EcgChannelSignals.Channel3Size= (Size-SampleCounter);
+                                            EcgChannelSignals.Channel4Size= (Size-SampleCounter);
+                                            EcgChannelSignals.Channel5Size= (Size-SampleCounter);
                                         }
                                         else
                                         {
