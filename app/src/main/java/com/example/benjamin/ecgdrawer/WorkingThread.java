@@ -41,6 +41,13 @@ public class WorkingThread extends Thread
     private float[] ResultArray4;
     private int MaxDebounce = 0;
     private int RWaveCounter = 0;
+    private static final int State_MaxSearch = 1;
+    private static final int State_Deadtime = 2;
+    private static final int State_Search = 0;
+    private int State=0;
+    private int MaxCheckerDebounce=0;
+    private int MaxSearchDebounce = 0;
+    private int DeadtimeDebounce=0;
 
     public WorkingThread(Context c, Handler handler)
     {
@@ -138,6 +145,7 @@ public class WorkingThread extends Thread
                             while(HelperThread[looper].ToHelperThread == null);
                             ToHelperThreadMsg[looper] = HelperThread[looper].ToHelperThread.obtainMessage();
                             ToHelperThreadMsg[looper].arg1 = 0;
+                            //ToHelperThreadMsg[looper].setTarget(HelperThread[looper].ToHelperThread);
                             HelperThread[looper].ToHelperThread.sendMessage(ToHelperThreadMsg[looper]);
                         }
 
@@ -161,6 +169,7 @@ public class WorkingThread extends Thread
                             ToHelperThreadMsg[0].obj = MessageHelper;
                             ToHelperThreadMsg[0].arg1 = 1;
                             HelperThread[0].ToHelperThread.sendMessage(ToHelperThreadMsg[0]);
+                            //ToHelperThreadMsg[0].sendToTarget();
 
                             if(looper2 < TestData.length)
                             {
@@ -278,40 +287,57 @@ public class WorkingThread extends Thread
                                     ResultArray4[looper2+1-GivenData+looper3] /= 10;//*/
 
                                     if(ResultArray4[looper2+1-GivenData+looper3] > MaxValue) MaxValue=ResultArray4[looper2+1-GivenData+looper3];
-                                    if(Debouncing)
+                                    switch (State)
                                     {
-                                        if(ResultArray[looper2+1-GivenData+looper3] >= LocalMax)
-                                        {
-                                            LocalMax = ResultArray4[looper2+1-GivenData+looper3];
-                                        }
-                                        if(DebounceCounter < 600) DebounceCounter++;
-                                        else
-                                        {
-                                            MaxDebounce = 0;
-                                            Debouncing = false;
-                                            Message m = ReturnHandler.obtainMessage();
-                                            m.obj = ResultArray4;
-                                            m.arg1 = 3;
-                                            m.arg2 = RWaveCounter;
-                                            ReturnHandler.sendMessage(m);
-                                            RWaveCounter = 0;
-                                        }
+                                        case State_Search:
+                                            if(ResultArray4[looper2+1-GivenData+looper3] >= MaxValue*0.5)
+                                            {
+                                                LocalMax = ResultArray[looper2+1-GivenData+looper3];
+                                                State = State_MaxSearch;
+                                                MaxCheckerDebounce=0;
+                                            }
+                                            else
+                                            {
+                                                MaxCheckerDebounce++;
+                                                if(MaxCheckerDebounce >= 6000)
+                                                {
+                                                    MaxValue=0;
+                                                    MaxCheckerDebounce=0;
+                                                }
+                                            }
+                                            break;
+                                        case State_MaxSearch:
+                                            MaxSearchDebounce++;
+                                            if(MaxSearchDebounce<240)
+                                            {
+                                                if(ResultArray[looper2+1-GivenData+looper3] > LocalMax)
+                                                {
+                                                    LocalMax = ResultArray4[looper2+1-GivenData+looper3];
+                                                }
+                                            }
+                                            else
+                                            {
+                                                MaxSearchDebounce=0;
+                                                Message m = ReturnHandler.obtainMessage();
+                                                m.obj = ResultArray4;
+                                                m.arg1 = 3;
+                                                m.arg2 = RWaveCounter;
+                                                ReturnHandler.sendMessage(m);
+                                                RWaveCounter = 0;
+                                                State = State_Deadtime;
+                                                //State = State_Search;
+                                            }
+                                            break;
+                                        case State_Deadtime:
+                                            DeadtimeDebounce++;
+                                            if(DeadtimeDebounce>360)
+                                            {
+                                                State = State_Search;
+                                                DeadtimeDebounce=0;
+                                            }
+                                            break;
                                     }
-                                    else if(ResultArray4[looper2+1-GivenData+looper3] >MaxValue*0.5)
-                                    {
-                                        Debouncing = true;
-                                        DebounceCounter = 0;
-                                        LocalMax = ResultArray[looper2+1-GivenData+looper3];
-                                    }
-                                    else {
-                                        MaxDebounce++;
-                                        if(MaxDebounce > 6000)
-                                        {
-                                            MaxValue = 0;
-                                            MaxDebounce = 0;
-                                        }
-                                    }
-                                }//*/
+                                }
                             }
                         }
                         Message m = ReturnHandler.obtainMessage();
