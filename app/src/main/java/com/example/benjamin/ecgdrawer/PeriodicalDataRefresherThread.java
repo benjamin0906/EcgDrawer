@@ -40,9 +40,10 @@ public class PeriodicalDataRefresherThread extends Thread {
     public void run()
     {
         Looper.prepare();
-        handler = new Handler()
+        handler = new Handler(new Handler.Callback()
         {
-            public void handleMessage(Message msg)
+            @Override
+            public boolean handleMessage(Message msg)
             {
                 switch (msg.arg1)
                 {
@@ -133,11 +134,9 @@ public class PeriodicalDataRefresherThread extends Thread {
                         Looper.myLooper().quit();
                         break;
                 }
-
+                return false;
             }
-
-
-        };
+        });
         Looper.loop();
     }
 }

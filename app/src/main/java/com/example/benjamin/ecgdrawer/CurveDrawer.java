@@ -59,46 +59,8 @@ public class CurveDrawer {
         {
             /* In this case the signals has to be compressed. */
             float tRate = 1/Rate;
-            //Log.d("EcgDrawer", "bizbasz");
-            PostMul =  (tRate*(float)(LineIterator+1))-(int)(tRate*(float)(LineIterator+1));
-            PreMul = 1-PostMul;
             for(looper=0;looper < Sizes;looper++,looper2++)
             {
-//                if(PrevSampleLooper<=(int)tRate)
-//                {
-//                    CurrentValue += Data[looper];
-//                }
-//                else
-//                {
-//                    CurrentValue = Data[looper]*PostMul;
-//                    CurrentValue /= tRate;
-//                    tVoltageMax = Math.max(tVoltageMax,CurrentValue);
-//                    tVoltageMin = Math.min(tVoltageMin,CurrentValue);
-//                    if(CurrentValue < MaxValue && CurrentValue > MinValue)
-//                    {
-//                        Ordinate= (int) (Mul1*((MaxValue-CurrentValue)));
-//                    }
-//                    else if(CurrentValue >= MaxValue) Ordinate = 0;
-//                    else Ordinate = DrawViewHeight-1;
-//                    Lines2.modifyLineWithoutRefresh(LineIterator, LineIterator, OrdinatePrev, LineIterator+1, Ordinate);
-//                    OrdinatePrev = Ordinate;
-//                    LineIterator++;
-//                    if (LineIterator == LineID)
-//                    {
-//                        LineIterator=0;
-//                        MaxValue=tVoltageMax;
-//                        MinValue=tVoltageMin;
-//                        tVoltageMin = CurrentValue;
-//                        tVoltageMax = CurrentValue;
-//                        looper2=0;
-//
-//                    }
-//                    PostMul =  (tRate*(float)(LineIterator+1))-(float)((int)(tRate*(float)(LineIterator+1)));
-//                    PreMul = 1-PostMul;
-//                    CurrentValue = Data[looper]*PreMul;
-//                    PrevSampleLooper=0;
-//                }
-//                PrevSampleLooper++;
                 PrevSampleLooper++;
                 if((tRate*(float)(LineIterator+1)) <= (float)PrevSampleLooper)
                 {

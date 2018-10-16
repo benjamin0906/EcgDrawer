@@ -20,7 +20,7 @@ public class FileDriver
     private FileOutputStream WorkingOutputStream;
     private FileInputStream WorkingInputStream;
     private Context MainContext;
-    ArrayList<File> FilesInFolder2;
+    private ArrayList<File> FilesInFolder2;
     private final String ConstFileID="Ecg Data\n";
     private ChannelSignal DataBuffer;
     public FileDriver(Context c, int BufferSize)

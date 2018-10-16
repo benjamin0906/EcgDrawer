@@ -106,7 +106,7 @@ public class WorkingThread extends Thread
                             inputStream.read(FileContainer);
                             inputStream.close();
 
-                            int looper = 0;
+                            int looper;
                             int looper2 = 0;
                             int Start = 0;
                             for(looper=0;looper<size;looper++) if(FileContainer[looper] == '\n') looper2++;
