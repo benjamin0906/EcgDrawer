@@ -6,6 +6,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -13,10 +14,12 @@ public class HelperThread extends Thread {
     public Handler ToHelperThread;
     private float[] Weights;
     public Handler ReturnHandler;
+    private float[] Ret;
 
     public HelperThread(Context c, Handler handler)
     {
         ReturnHandler = handler;
+        Ret = new float[2];
         try
         {
             InputStream inputStream = c.getAssets().open("FilterWeight.txt");
@@ -50,36 +53,35 @@ public class HelperThread extends Thread {
     public void run()
     {
         Looper.prepare();
-        ToHelperThread = new Handler()
-        {
-            public void handleMessage(Message msg)
-            {
-                //Log.d("---HelperThread---", "In handler");
+        ToHelperThread = new Handler(new Handler.Callback() {
+            @Override
+            public boolean handleMessage(Message msg) {
                 float[] buffer;
-                float Result = 0;
                 switch (msg.arg1)
                 {
                     case 0:
                         break;
 
-                        default:
-                            buffer = ((MessageClass)msg.obj).buffer;
-                            Result = 0;
-                            for(int looper = Weights.length-1; looper != msg.arg1-1; looper--)
+                    default:
+                        buffer = (float[]) msg.obj;
+                        for(int CalcLooper=msg.arg2;CalcLooper>0;CalcLooper--)//TODO: CalcLooper is not handled in bufferindexing!!!!!!!!!!!!!!
+                        {
+                            Ret[CalcLooper%2] = 0;
+                            int looper;
+                            for(looper = 0;looper<(Weights.length-msg.arg1*2-CalcLooper-1);looper++)
                             {
-                                Result += buffer[looper-msg.arg1]*Weights[looper];
+                                Ret[CalcLooper%2] += buffer[looper]*Weights[looper+msg.arg1*2-CalcLooper+1];
                             }
-                            Result += ((MessageClass)msg.obj).Value*Weights[msg.arg1-1];
-                            Message msgBack3 = ReturnHandler.obtainMessage();
-                            msgBack3.arg1=msg.arg1;
-                            msgBack3.obj = Result;
-                            ReturnHandler.sendMessage(msgBack3);
+                        }
+                        Message msgBack3 = ReturnHandler.obtainMessage();
+                        msgBack3.arg1=msg.arg1;
+                        msgBack3.arg2=msg.arg2;
+                        msgBack3.obj = Ret;
+                        ReturnHandler.sendMessage(msgBack3);
                 }
-
+                return false;
             }
-
-
-        };
+        });
 
         Looper.loop();
     }

@@ -18,28 +18,20 @@ public class WorkingThread extends Thread
     private Context MainContext;
     private float[] Weights;
     private float[] TestData;
-    private boolean Debouncing =false;
     private float[] Phase2Prev = new float[5];
     private float[] Phase4PrevFirst = new float[10];
     private float Sum = 0;
     private float MaxValue = 0;
-    private int DebounceCounter = 0;
     private HelperThread[] HelperThread = new HelperThread[ThreadNumber];
     private Message[] ToHelperThreadMsg = new Message[ThreadNumber];
     private Handler ReturnFromHelperThread;
-    private boolean[] HelperThreadReady = new boolean[ThreadNumber];
-    private float[] ReturnedResult = new float[ThreadNumber];
-    private MessageClass MessageHelper;
-    private MessageClass MessageHelper2;
-    private MessageClass MessageHelper3;
-    private MessageClass MessageHelper4;
-    private MessageClass MessageHelper5;
+    private boolean[] HelperThreadReady = new boolean[ThreadNumber*2];
+    private float[] ReturnedResult = new float[ThreadNumber*2];
     private float buffer[];
     private float bufferForThread[];
     private float[] ResultArray;
     private float[] ResultArray3;
     private float[] ResultArray4;
-    private int MaxDebounce = 0;
     private int RWaveCounter = 0;
     private static final int State_MaxSearch = 1;
     private static final int State_Deadtime = 2;
@@ -53,11 +45,6 @@ public class WorkingThread extends Thread
     {
         MainContext = c;
         ReturnHandler = handler;
-        MessageHelper = new MessageClass();
-        MessageHelper2 = new MessageClass();
-        MessageHelper3 = new MessageClass();
-        MessageHelper4 = new MessageClass();
-        MessageHelper5 = new MessageClass();
 
         ResultArray = new float[500];
         ResultArray3 = new float[500];
@@ -69,23 +56,48 @@ public class WorkingThread extends Thread
                 {
                     case 1:
                         HelperThreadReady[0] = true;
-                        ReturnedResult[0] = (float) msg.obj;
+                        ReturnedResult[0] = ((float[]) msg.obj)[0];
+                        if(msg.arg2 == 2)
+                        {
+                            ReturnedResult[1] = ((float[]) msg.obj)[1];
+                            HelperThreadReady[1] = true;
+                        }
                         break;
                     case 2:
-                        HelperThreadReady[1] = true;
-                        ReturnedResult[1] = (float) msg.obj;
+                        HelperThreadReady[2] = true;
+                        ReturnedResult[2] = ((float[]) msg.obj)[0];
+                        if(msg.arg2 == 2)
+                        {
+                            ReturnedResult[3] = ((float[]) msg.obj)[1];
+                            HelperThreadReady[3] = true;
+                        }
                         break;
                     case 3:
-                        HelperThreadReady[2] = true;
-                        ReturnedResult[2] = (float) msg.obj;
+                        HelperThreadReady[4] = true;
+                        ReturnedResult[4] = ((float[]) msg.obj)[0];
+                        if(msg.arg2 == 2)
+                        {
+                            ReturnedResult[5] = ((float[]) msg.obj)[1];
+                            HelperThreadReady[5] = true;
+                        }
                         break;
                     case 4:
-                        HelperThreadReady[3] = true;
-                        ReturnedResult[3] = (float) msg.obj;
+                        HelperThreadReady[6] = true;
+                        ReturnedResult[6] = ((float[]) msg.obj)[0];
+                        if(msg.arg2 == 2)
+                        {
+                            ReturnedResult[7] = ((float[]) msg.obj)[1];
+                            HelperThreadReady[7] = true;
+                        }
                         break;
                     case 5:
-                        HelperThreadReady[4] = true;
-                        ReturnedResult[4] = (float) msg.obj;
+                        HelperThreadReady[8] = true;
+                        ReturnedResult[8] = ((float[]) msg.obj)[0];
+                        if(msg.arg2 == 2)
+                        {
+                            ReturnedResult[9] = ((float[]) msg.obj)[1];
+                            HelperThreadReady[9] = true;
+                        }
                         break;
                 }
                 return false;
@@ -162,25 +174,36 @@ public class WorkingThread extends Thread
 
                             System.arraycopy(buffer,0,bufferForThread,0,buffer.length);
 
-                            MessageHelper.buffer = bufferForThread;
-                            MessageHelper.Value = TestData[looper2];
                             looper2++;
                             GivenData=1;
-                            ToHelperThreadMsg[0].obj = MessageHelper;
+                            ToHelperThreadMsg[0].arg2 = 1;
+                            if(looper2<TestData.length)
+                            {
+                                HelperThreadReady[1] =false;
+                                looper2++;
+                                GivenData++;
+                                ToHelperThreadMsg[0].arg2++;
+                            }
+                            ToHelperThreadMsg[0].obj = bufferForThread;
                             ToHelperThreadMsg[0].arg1 = 1;
                             HelperThread[0].ToHelperThread.sendMessage(ToHelperThreadMsg[0]);
-                            //ToHelperThreadMsg[0].sendToTarget();
 
                             if(looper2 < TestData.length)
                             {
                                 ToHelperThreadMsg[1] = HelperThread[1].ToHelperThread.obtainMessage();
-                                HelperThreadReady[1]=false;//*/
+                                HelperThreadReady[2]=false;//*/
 
-                                MessageHelper2.buffer = bufferForThread;
-                                MessageHelper2.Value = TestData[looper2 - 1];
                                 looper2++;
                                 GivenData++;
-                                ToHelperThreadMsg[1].obj = MessageHelper2;
+                                ToHelperThreadMsg[1].arg2=1;
+                                if(looper2<TestData.length)
+                                {
+                                    HelperThreadReady[3] =false;
+                                    looper2++;
+                                    GivenData++;
+                                    ToHelperThreadMsg[1].arg2++;
+                                }
+                                ToHelperThreadMsg[1].obj = bufferForThread;
                                 ToHelperThreadMsg[1].arg1 = 2;
                                 HelperThread[1].ToHelperThread.sendMessage(ToHelperThreadMsg[1]);//*/
                             }
@@ -188,13 +211,19 @@ public class WorkingThread extends Thread
                             if(looper2 < TestData.length)
                             {
                                 ToHelperThreadMsg[2] = HelperThread[2].ToHelperThread.obtainMessage();
-                                HelperThreadReady[2]=false;//*/
+                                HelperThreadReady[4]=false;//*/
 
-                                MessageHelper3.buffer = bufferForThread;
-                                MessageHelper3.Value = TestData[looper2 - 2];
-                                looper2++;
                                 GivenData++;
-                                ToHelperThreadMsg[2].obj = MessageHelper3;
+                                looper2++;
+                                ToHelperThreadMsg[2].arg2=1;
+                                if(looper2<TestData.length)
+                                {
+                                    HelperThreadReady[5] =false;
+                                    GivenData++;
+                                    looper2++;
+                                    ToHelperThreadMsg[2].arg2++;
+                                }
+                                ToHelperThreadMsg[2].obj = bufferForThread;
                                 ToHelperThreadMsg[2].arg1 = 3;
                                 HelperThread[2].ToHelperThread.sendMessage(ToHelperThreadMsg[2]);//*/
                             }
@@ -202,13 +231,19 @@ public class WorkingThread extends Thread
                             if(looper2 < TestData.length)
                             {
                                 ToHelperThreadMsg[3] = HelperThread[3].ToHelperThread.obtainMessage();
-                                HelperThreadReady[3]=false;//*/
+                                HelperThreadReady[6]=false;//*/
 
-                                MessageHelper4.buffer = bufferForThread;
-                                MessageHelper4.Value = TestData[looper2 - 3];
                                 looper2++;
                                 GivenData++;
-                                ToHelperThreadMsg[3].obj = MessageHelper4;
+                                ToHelperThreadMsg[3].arg2=1;
+                                if(looper2<TestData.length)
+                                {
+                                    HelperThreadReady[7] =false;
+                                    looper2++;
+                                    GivenData++;
+                                    ToHelperThreadMsg[3].arg2++;
+                                }
+                                ToHelperThreadMsg[3].obj = bufferForThread;
                                 ToHelperThreadMsg[3].arg1 = 4;
                                 HelperThread[3].ToHelperThread.sendMessage(ToHelperThreadMsg[3]);//*/
                             }
@@ -216,13 +251,19 @@ public class WorkingThread extends Thread
                             if(looper2 < TestData.length)
                             {
                                 ToHelperThreadMsg[4] = HelperThread[4].ToHelperThread.obtainMessage();
-                                HelperThreadReady[4]=false;//*/
+                                HelperThreadReady[8]=false;//*/
 
-                                MessageHelper5.buffer = bufferForThread;
-                                MessageHelper5.Value = TestData[looper2 - 4];
                                 looper2++;
                                 GivenData++;
-                                ToHelperThreadMsg[4].obj = MessageHelper5;
+                                ToHelperThreadMsg[4].arg2=1;
+                                if(looper2<TestData.length)
+                                {
+                                    HelperThreadReady[9] =false;
+                                    looper2++;
+                                    GivenData++;
+                                    ToHelperThreadMsg[4].arg2++;
+                                }
+                                ToHelperThreadMsg[4].obj = bufferForThread;
                                 ToHelperThreadMsg[4].arg1 = 5;
                                 HelperThread[4].ToHelperThread.sendMessage(ToHelperThreadMsg[4]);//*/
                             }
@@ -237,25 +278,79 @@ public class WorkingThread extends Thread
                                     switch (looper)
                                     {
                                         case 0:
-                                            ResultArray[looper2-GivenData+1] = 0;
+                                            ResultArray[looper2-GivenData+1] = buffer[9]*Weights[0];
                                             break;
                                         case 1:
-                                            ResultArray[looper2-GivenData+2] = buffer[3] * Weights[0];
+                                            ResultArray[looper2-GivenData+2] =  buffer[9] * Weights[1];
+                                            ResultArray[looper2-GivenData+2] += buffer[8] * Weights[0];
                                             break;
                                         case 2:
-                                            ResultArray[looper2-GivenData+3] = buffer[3] * Weights[1];
-                                            ResultArray[looper2-GivenData+3] += buffer[2] * Weights[0];
+                                            ResultArray[looper2-GivenData+3] =  buffer[9] * Weights[2];
+                                            ResultArray[looper2-GivenData+3] += buffer[8] * Weights[1];
+                                            ResultArray[looper2-GivenData+3] += buffer[7] * Weights[0];
                                             break;
                                         case 3:
-                                            ResultArray[looper2-GivenData+4] = buffer[3] * Weights[2];
-                                            ResultArray[looper2-GivenData+4] += buffer[2] * Weights[1];
-                                            ResultArray[looper2-GivenData+4] += buffer[1] * Weights[0];
+                                            ResultArray[looper2-GivenData+4] =  buffer[9] * Weights[3];
+                                            ResultArray[looper2-GivenData+4] += buffer[8] * Weights[2];
+                                            ResultArray[looper2-GivenData+4] += buffer[7] * Weights[1];
+                                            ResultArray[looper2-GivenData+4] += buffer[6] * Weights[0];
                                             break;
                                         case 4:
-                                            ResultArray[looper2-GivenData+5] = buffer[3] * Weights[3];
-                                            ResultArray[looper2-GivenData+5] += buffer[2] * Weights[2];
-                                            ResultArray[looper2-GivenData+5] += buffer[1] * Weights[1];
-                                            ResultArray[looper2-GivenData+5] += buffer[0] * Weights[0];
+                                            ResultArray[looper2-GivenData+5] =  buffer[9] * Weights[4];
+                                            ResultArray[looper2-GivenData+5] += buffer[8] * Weights[3];
+                                            ResultArray[looper2-GivenData+5] += buffer[7] * Weights[2];
+                                            ResultArray[looper2-GivenData+5] += buffer[6] * Weights[1];
+                                            ResultArray[looper2-GivenData+5] += buffer[5] * Weights[0];
+                                            break;
+                                        case 5:
+                                            ResultArray[looper2-GivenData+6] =  buffer[9]*Weights[5];
+                                            ResultArray[looper2-GivenData+6] += buffer[8]*Weights[4];
+                                            ResultArray[looper2-GivenData+6] += buffer[7]*Weights[3];
+                                            ResultArray[looper2-GivenData+6] += buffer[6]*Weights[2];
+                                            ResultArray[looper2-GivenData+6] += buffer[5]*Weights[1];
+                                            ResultArray[looper2-GivenData+6] += buffer[4]*Weights[0];
+                                            break;
+                                        case 6:
+                                            ResultArray[looper2-GivenData+7] =  buffer[9]*Weights[6];
+                                            ResultArray[looper2-GivenData+7] += buffer[8]*Weights[5];
+                                            ResultArray[looper2-GivenData+7] += buffer[7]*Weights[4];
+                                            ResultArray[looper2-GivenData+7] += buffer[6]*Weights[3];
+                                            ResultArray[looper2-GivenData+7] += buffer[5]*Weights[2];
+                                            ResultArray[looper2-GivenData+7] += buffer[4]*Weights[1];
+                                            ResultArray[looper2-GivenData+7] += buffer[3]*Weights[0];
+                                            break;
+                                        case 7:
+                                            ResultArray[looper2-GivenData+8] =  buffer[9]*Weights[7];
+                                            ResultArray[looper2-GivenData+8] += buffer[8]*Weights[6];
+                                            ResultArray[looper2-GivenData+8] += buffer[7]*Weights[5];
+                                            ResultArray[looper2-GivenData+8] += buffer[6]*Weights[4];
+                                            ResultArray[looper2-GivenData+8] += buffer[5]*Weights[3];
+                                            ResultArray[looper2-GivenData+8] += buffer[4]*Weights[2];
+                                            ResultArray[looper2-GivenData+8] += buffer[3]*Weights[1];
+                                            ResultArray[looper2-GivenData+8] += buffer[2]*Weights[0];
+                                            break;
+                                        case 8:
+                                            ResultArray[looper2-GivenData+9] = buffer[9]*Weights[8];
+                                            ResultArray[looper2-GivenData+9] += buffer[8]*Weights[7];
+                                            ResultArray[looper2-GivenData+9] += buffer[7]*Weights[6];
+                                            ResultArray[looper2-GivenData+9] += buffer[6]*Weights[5];
+                                            ResultArray[looper2-GivenData+9] += buffer[5]*Weights[4];
+                                            ResultArray[looper2-GivenData+9] += buffer[4]*Weights[3];
+                                            ResultArray[looper2-GivenData+9] += buffer[3]*Weights[2];
+                                            ResultArray[looper2-GivenData+9] += buffer[2]*Weights[1];
+                                            ResultArray[looper2-GivenData+9] += buffer[1]*Weights[0];
+                                            break;
+                                        case 9:
+                                            ResultArray[looper2-GivenData+10] = buffer[9]*Weights[9];
+                                            ResultArray[looper2-GivenData+10] += buffer[8]*Weights[8];
+                                            ResultArray[looper2-GivenData+10] += buffer[7]*Weights[7];
+                                            ResultArray[looper2-GivenData+10] += buffer[6]*Weights[6];
+                                            ResultArray[looper2-GivenData+10] += buffer[5]*Weights[5];
+                                            ResultArray[looper2-GivenData+10] += buffer[4]*Weights[4];
+                                            ResultArray[looper2-GivenData+10] += buffer[3]*Weights[3];
+                                            ResultArray[looper2-GivenData+10] += buffer[2]*Weights[2];
+                                            ResultArray[looper2-GivenData+10] += buffer[1]*Weights[1];
+                                            ResultArray[looper2-GivenData+10] += buffer[0]*Weights[0];
                                             break;
                                     }
                                 }
@@ -264,14 +359,17 @@ public class WorkingThread extends Thread
                                 int Threads=0;
                                 for(int looper = 0;Threads!=GivenData;looper++)
                                 {
-                                    if(looper==5)
+                                    if(looper==10)
                                     {
                                         looper = 0;
                                         Threads = 0;
                                     }
                                     if(HelperThreadReady[looper]) Threads++;
                                 }
-                                for(int looper = 0; looper<GivenData; looper++) ResultArray[looper2-GivenData+looper+1] += ReturnedResult[looper];
+                                for(int looper = 0; looper<GivenData; looper++)
+                                {
+                                    ResultArray[looper2-GivenData+looper+1] += ReturnedResult[looper];
+                                }
 
                                 for(int looper3=0;looper3<GivenData;looper3++)
                                 {
