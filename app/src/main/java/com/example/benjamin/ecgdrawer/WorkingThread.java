@@ -55,47 +55,68 @@ public class WorkingThread extends Thread
                 switch (msg.arg1)
                 {
                     case 1:
+                        ReturnMsg ret;
                         HelperThreadReady[0] = true;
-                        ReturnedResult[0] = ((float[]) msg.obj)[0];
+                        //ReturnedResult[0] = ((float[]) msg.obj)[0];
+                        ret = (ReturnMsg) msg.obj;
+                        ReturnedResult[0]=ret.data[0];
+                        ToHelperThreadMsg[0]=ret.msg;
                         if(msg.arg2 == 2)
                         {
-                            ReturnedResult[1] = ((float[]) msg.obj)[1];
+                            //ReturnedResult[1] = ((float[]) msg.obj)[1];
+                            ReturnedResult[1]=ret.data[1];
                             HelperThreadReady[1] = true;
                         }
                         break;
                     case 2:
                         HelperThreadReady[2] = true;
-                        ReturnedResult[2] = ((float[]) msg.obj)[0];
+                        ret = (ReturnMsg) msg.obj;
+                        //ReturnedResult[2] = ((float[]) msg.obj)[0];
+                        ReturnedResult[2] = ret.data[0];
+                        ToHelperThreadMsg[1]=ret.msg;
                         if(msg.arg2 == 2)
                         {
-                            ReturnedResult[3] = ((float[]) msg.obj)[1];
+                            //ReturnedResult[3] = ((float[]) msg.obj)[1];
+                            ReturnedResult[3] = ret.data[1];
                             HelperThreadReady[3] = true;
                         }
                         break;
                     case 3:
                         HelperThreadReady[4] = true;
-                        ReturnedResult[4] = ((float[]) msg.obj)[0];
+                        ret = (ReturnMsg) msg.obj;
+                        //ReturnedResult[4] = ((float[]) msg.obj)[0];
+                        ReturnedResult[4] = ret.data[0];
+                        ToHelperThreadMsg[2]=ret.msg;
                         if(msg.arg2 == 2)
                         {
-                            ReturnedResult[5] = ((float[]) msg.obj)[1];
+                            //ReturnedResult[5] = ((float[]) msg.obj)[1];
+                            ReturnedResult[5] = ret.data[1];
                             HelperThreadReady[5] = true;
                         }
                         break;
                     case 4:
                         HelperThreadReady[6] = true;
-                        ReturnedResult[6] = ((float[]) msg.obj)[0];
+                        ret = (ReturnMsg) msg.obj;
+                        //ReturnedResult[6] = ((float[]) msg.obj)[0];
+                        ReturnedResult[6] = ret.data[0];
+                        ToHelperThreadMsg[3]=ret.msg;
                         if(msg.arg2 == 2)
                         {
-                            ReturnedResult[7] = ((float[]) msg.obj)[1];
+                            //ReturnedResult[7] = ((float[]) msg.obj)[1];
+                            ReturnedResult[7] = ret.data[1];
                             HelperThreadReady[7] = true;
                         }
                         break;
                     case 5:
                         HelperThreadReady[8] = true;
-                        ReturnedResult[8] = ((float[]) msg.obj)[0];
+                        ret = (ReturnMsg) msg.obj;
+                        //ReturnedResult[8] = ((float[]) msg.obj)[0];
+                        ReturnedResult[8] = ret.data[0];
+                        ToHelperThreadMsg[4]=ret.msg;
                         if(msg.arg2 == 2)
                         {
-                            ReturnedResult[9] = ((float[]) msg.obj)[1];
+                            //ReturnedResult[9] = ((float[]) msg.obj)[1];
+                            ReturnedResult[9] = ret.data[1];
                             HelperThreadReady[9] = true;
                         }
                         break;
@@ -160,6 +181,10 @@ public class WorkingThread extends Thread
                             //ToHelperThreadMsg[looper].setTarget(HelperThread[looper].ToHelperThread);
                             HelperThread[looper].ToHelperThread.sendMessage(ToHelperThreadMsg[looper]);
                         }
+                        for(int looper = 0; looper<ThreadNumber; looper++)
+                        {
+                            ToHelperThreadMsg[looper] = HelperThread[looper].ToHelperThread.obtainMessage();
+                        }
 
                         break;
                     case 1:
@@ -169,10 +194,9 @@ public class WorkingThread extends Thread
                         TestData = (float[]) msg.obj;
                         for(looper2 = 0; looper2 < msg.arg2; looper2++)
                         {
-                            ToHelperThreadMsg[0] = HelperThread[0].ToHelperThread.obtainMessage();
-                            HelperThreadReady[0] =false;
-
                             System.arraycopy(buffer,0,bufferForThread,0,buffer.length);
+
+                            HelperThreadReady[0] =false;
 
                             looper2++;
                             GivenData=1;
@@ -190,7 +214,7 @@ public class WorkingThread extends Thread
 
                             if(looper2 < TestData.length)
                             {
-                                ToHelperThreadMsg[1] = HelperThread[1].ToHelperThread.obtainMessage();
+                                //ToHelperThreadMsg[1] = HelperThread[1].ToHelperThread.obtainMessage();
                                 HelperThreadReady[2]=false;//*/
 
                                 looper2++;
@@ -210,7 +234,7 @@ public class WorkingThread extends Thread
 
                             if(looper2 < TestData.length)
                             {
-                                ToHelperThreadMsg[2] = HelperThread[2].ToHelperThread.obtainMessage();
+                                //ToHelperThreadMsg[2] = HelperThread[2].ToHelperThread.obtainMessage();
                                 HelperThreadReady[4]=false;//*/
 
                                 GivenData++;
@@ -230,7 +254,7 @@ public class WorkingThread extends Thread
 
                             if(looper2 < TestData.length)
                             {
-                                ToHelperThreadMsg[3] = HelperThread[3].ToHelperThread.obtainMessage();
+                                //ToHelperThreadMsg[3] = HelperThread[3].ToHelperThread.obtainMessage();
                                 HelperThreadReady[6]=false;//*/
 
                                 looper2++;
@@ -250,7 +274,7 @@ public class WorkingThread extends Thread
 
                             if(looper2 < TestData.length)
                             {
-                                ToHelperThreadMsg[4] = HelperThread[4].ToHelperThread.obtainMessage();
+                                //ToHelperThreadMsg[4] = HelperThread[4].ToHelperThread.obtainMessage();
                                 HelperThreadReady[8]=false;//*/
 
                                 looper2++;
@@ -275,83 +299,10 @@ public class WorkingThread extends Thread
                                 /* Add the remaining part of the values of thread */
                                 for(int looper = 0; looper<GivenData;looper++)
                                 {
-                                    switch (looper)
+                                    ResultArray[looper2-GivenData+looper+1]=0;
+                                    for(int looper3=0; looper3<looper+1;looper3++)
                                     {
-                                        case 0:
-                                            ResultArray[looper2-GivenData+1] = buffer[9]*Weights[0];
-                                            break;
-                                        case 1:
-                                            ResultArray[looper2-GivenData+2] =  buffer[9] * Weights[1];
-                                            ResultArray[looper2-GivenData+2] += buffer[8] * Weights[0];
-                                            break;
-                                        case 2:
-                                            ResultArray[looper2-GivenData+3] =  buffer[9] * Weights[2];
-                                            ResultArray[looper2-GivenData+3] += buffer[8] * Weights[1];
-                                            ResultArray[looper2-GivenData+3] += buffer[7] * Weights[0];
-                                            break;
-                                        case 3:
-                                            ResultArray[looper2-GivenData+4] =  buffer[9] * Weights[3];
-                                            ResultArray[looper2-GivenData+4] += buffer[8] * Weights[2];
-                                            ResultArray[looper2-GivenData+4] += buffer[7] * Weights[1];
-                                            ResultArray[looper2-GivenData+4] += buffer[6] * Weights[0];
-                                            break;
-                                        case 4:
-                                            ResultArray[looper2-GivenData+5] =  buffer[9] * Weights[4];
-                                            ResultArray[looper2-GivenData+5] += buffer[8] * Weights[3];
-                                            ResultArray[looper2-GivenData+5] += buffer[7] * Weights[2];
-                                            ResultArray[looper2-GivenData+5] += buffer[6] * Weights[1];
-                                            ResultArray[looper2-GivenData+5] += buffer[5] * Weights[0];
-                                            break;
-                                        case 5:
-                                            ResultArray[looper2-GivenData+6] =  buffer[9]*Weights[5];
-                                            ResultArray[looper2-GivenData+6] += buffer[8]*Weights[4];
-                                            ResultArray[looper2-GivenData+6] += buffer[7]*Weights[3];
-                                            ResultArray[looper2-GivenData+6] += buffer[6]*Weights[2];
-                                            ResultArray[looper2-GivenData+6] += buffer[5]*Weights[1];
-                                            ResultArray[looper2-GivenData+6] += buffer[4]*Weights[0];
-                                            break;
-                                        case 6:
-                                            ResultArray[looper2-GivenData+7] =  buffer[9]*Weights[6];
-                                            ResultArray[looper2-GivenData+7] += buffer[8]*Weights[5];
-                                            ResultArray[looper2-GivenData+7] += buffer[7]*Weights[4];
-                                            ResultArray[looper2-GivenData+7] += buffer[6]*Weights[3];
-                                            ResultArray[looper2-GivenData+7] += buffer[5]*Weights[2];
-                                            ResultArray[looper2-GivenData+7] += buffer[4]*Weights[1];
-                                            ResultArray[looper2-GivenData+7] += buffer[3]*Weights[0];
-                                            break;
-                                        case 7:
-                                            ResultArray[looper2-GivenData+8] =  buffer[9]*Weights[7];
-                                            ResultArray[looper2-GivenData+8] += buffer[8]*Weights[6];
-                                            ResultArray[looper2-GivenData+8] += buffer[7]*Weights[5];
-                                            ResultArray[looper2-GivenData+8] += buffer[6]*Weights[4];
-                                            ResultArray[looper2-GivenData+8] += buffer[5]*Weights[3];
-                                            ResultArray[looper2-GivenData+8] += buffer[4]*Weights[2];
-                                            ResultArray[looper2-GivenData+8] += buffer[3]*Weights[1];
-                                            ResultArray[looper2-GivenData+8] += buffer[2]*Weights[0];
-                                            break;
-                                        case 8:
-                                            ResultArray[looper2-GivenData+9] = buffer[9]*Weights[8];
-                                            ResultArray[looper2-GivenData+9] += buffer[8]*Weights[7];
-                                            ResultArray[looper2-GivenData+9] += buffer[7]*Weights[6];
-                                            ResultArray[looper2-GivenData+9] += buffer[6]*Weights[5];
-                                            ResultArray[looper2-GivenData+9] += buffer[5]*Weights[4];
-                                            ResultArray[looper2-GivenData+9] += buffer[4]*Weights[3];
-                                            ResultArray[looper2-GivenData+9] += buffer[3]*Weights[2];
-                                            ResultArray[looper2-GivenData+9] += buffer[2]*Weights[1];
-                                            ResultArray[looper2-GivenData+9] += buffer[1]*Weights[0];
-                                            break;
-                                        case 9:
-                                            ResultArray[looper2-GivenData+10] = buffer[9]*Weights[9];
-                                            ResultArray[looper2-GivenData+10] += buffer[8]*Weights[8];
-                                            ResultArray[looper2-GivenData+10] += buffer[7]*Weights[7];
-                                            ResultArray[looper2-GivenData+10] += buffer[6]*Weights[6];
-                                            ResultArray[looper2-GivenData+10] += buffer[5]*Weights[5];
-                                            ResultArray[looper2-GivenData+10] += buffer[4]*Weights[4];
-                                            ResultArray[looper2-GivenData+10] += buffer[3]*Weights[3];
-                                            ResultArray[looper2-GivenData+10] += buffer[2]*Weights[2];
-                                            ResultArray[looper2-GivenData+10] += buffer[1]*Weights[1];
-                                            ResultArray[looper2-GivenData+10] += buffer[0]*Weights[0];
-                                            break;
+                                        ResultArray[looper2-GivenData+looper+1]+=buffer[GivenData-looper3-1]*Weights[looper-looper3];
                                     }
                                 }
 

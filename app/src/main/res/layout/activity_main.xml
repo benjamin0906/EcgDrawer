@@ -23,7 +23,7 @@
 
         <TextView
             android:id="@+id/textView3"
-            android:layout_width="288dp"
+            android:layout_width="76dp"
             android:layout_height="42dp"
             android:layout_marginStart="48dp"
             android:layout_marginTop="72dp"
@@ -72,43 +72,46 @@
             android:layout_centerInParent="true"
             android:layout_marginEnd="26dp"
             android:layout_marginStart="26dp"
-            android:layout_marginTop="324dp"
+            android:layout_marginTop="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@+id/drawview" />
 
         <com.example.benjamin.ecgdrawer.DrawView
             android:id="@+id/drawview3"
             android:layout_width="296dp"
             android:layout_height="139dp"
             android:layout_centerInParent="true"
-            android:layout_marginEnd="8dp"
-            android:layout_marginStart="44dp"
-            android:layout_marginTop="472dp"
+            android:layout_marginEnd="26dp"
+            android:layout_marginStart="26dp"
+            android:layout_marginTop="8dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@+id/drawview2" />
 
         <com.example.benjamin.ecgdrawer.DrawView
             android:id="@+id/drawview4"
             android:layout_width="296dp"
             android:layout_height="139dp"
             android:layout_centerInParent="true"
-            android:layout_marginStart="44dp"
-            android:layout_marginTop="1002dp"
+            android:layout_marginEnd="26dp"
+            android:layout_marginStart="26dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@+id/drawview3" />
 
         <com.example.benjamin.ecgdrawer.DrawView
             android:id="@+id/drawview5"
             android:layout_width="296dp"
             android:layout_height="139dp"
             android:layout_centerInParent="true"
-            android:layout_marginStart="44dp"
-            android:layout_marginTop="1150dp"
+            android:layout_marginEnd="26dp"
+            android:layout_marginStart="26dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@+id/drawview4" />
 
         <Button
             android:id="@+id/LoadButton"
@@ -119,6 +122,16 @@
             android:onClick="LoadButtonOnClick"
             android:text="Load"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <CheckBox
+            android:id="@+id/checkBox"
+            android:layout_width="85dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="140dp"
+            android:layout_marginTop="72dp"
+            android:text="Saving"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
 

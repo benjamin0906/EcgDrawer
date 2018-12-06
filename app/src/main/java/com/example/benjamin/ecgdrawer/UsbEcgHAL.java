@@ -38,7 +38,7 @@ public class UsbEcgHAL extends AppCompatActivity {
     byte AskCommand = 0x01;
     private PeriodicalDataRefresherThread Thread;
     private boolean Loading=false;
-    private boolean Saving = false;
+    private boolean Saving = true;
 
     private PendingIntent       mPermissionIntent;
     private UsbManager          manager;
@@ -83,6 +83,9 @@ public class UsbEcgHAL extends AppCompatActivity {
                         if(Saving) FileHandler.Write(Datas);
                         Ch1Drawer.DrawDatas(Datas.Channel1Data,Datas.Channel1Size);
                         Ch2Drawer.DrawDatas(Datas.Channel2Data,Datas.Channel2Size);
+                        Ch3Drawer.DrawDatas(Datas.Channel3Data,Datas.Channel3Size);
+                        Ch4Drawer.DrawDatas(Datas.Channel4Data,Datas.Channel4Size);
+                        Ch5Drawer.DrawDatas(Datas.Channel5Data,Datas.Channel5Size);
                         System.arraycopy(Datas.Channel2Data,0, temp,0,Datas.Channel2Size);
                         msg = RWaveDetectorThread.ToWorkingThread.obtainMessage();
                         msg.arg2=Datas.Channel2Size;
@@ -377,6 +380,7 @@ public class UsbEcgHAL extends AppCompatActivity {
     }
     public void StartDataReadThread(boolean SavingNeeded)
     {
+        Saving = SavingNeeded;
         Thread = new PeriodicalDataRefresherThread();
         Thread.ecg = this;
         Thread.mainHandler=ReturnHandler;

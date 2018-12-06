@@ -6,7 +6,6 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
-
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -15,6 +14,7 @@ public class HelperThread extends Thread {
     private float[] Weights;
     public Handler ReturnHandler;
     private float[] Ret;
+    private ReturnMsg ret = new ReturnMsg();
 
     public HelperThread(Context c, Handler handler)
     {
@@ -64,19 +64,25 @@ public class HelperThread extends Thread {
 
                     default:
                         buffer = (float[]) msg.obj;
-                        for(int CalcLooper=msg.arg2;CalcLooper>0;CalcLooper--)//TODO: CalcLooper is not handled in bufferindexing!!!!!!!!!!!!!!
+                        int Amount1 = msg.arg1;
+                        int Amount2 = msg.arg2;
+                        //msg.recycle();
+                        for(int CalcLooper=Amount2;CalcLooper>0;CalcLooper--)//TODO: CalcLooper is not handled in bufferindexing!!!!!!!!!!!!!!
                         {
                             Ret[CalcLooper%2] = 0;
                             int looper;
-                            for(looper = 0;looper<(Weights.length-msg.arg1*2-CalcLooper-1);looper++)
+                            for(looper = 0;looper<(Weights.length-Amount1*2-CalcLooper-1);looper++)
                             {
-                                Ret[CalcLooper%2] += buffer[looper]*Weights[looper+msg.arg1*2-CalcLooper+1];
+                                Ret[CalcLooper%2] += buffer[looper]*Weights[looper+Amount1*2-CalcLooper+1];
                             }
                         }
+                        ret.msg=ToHelperThread.obtainMessage();
+                        ret.data=Ret;
                         Message msgBack3 = ReturnHandler.obtainMessage();
-                        msgBack3.arg1=msg.arg1;
-                        msgBack3.arg2=msg.arg2;
-                        msgBack3.obj = Ret;
+                        msgBack3.arg1=Amount1;
+                        msgBack3.arg2=Amount2;
+                        //msgBack3.obj = Ret;
+                        msgBack3.obj = ret;
                         ReturnHandler.sendMessage(msgBack3);
                 }
                 return false;

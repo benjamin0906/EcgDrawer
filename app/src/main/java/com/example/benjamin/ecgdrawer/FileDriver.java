@@ -38,8 +38,6 @@ public class FileDriver
             WorkingFile.createNewFile();
             WorkingFileWriter = new FileWriter(WorkingFile,true);
             WorkingFileReader = new FileReader(WorkingFile);
-            WorkingOutputStream = new FileOutputStream(WorkingFile,true);
-            WorkingInputStream = new FileInputStream(WorkingFile);
             WorkingFileWriter.write(ConstFileID.toCharArray());
         }
         catch (IOException e) {

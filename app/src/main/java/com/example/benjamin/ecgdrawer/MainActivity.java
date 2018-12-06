@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -33,11 +34,11 @@ public class MainActivity extends AppCompatActivity {
     private Button LoadButtonObj;
     private TextView textView3;
     public static TextView textView4;
+    private CheckBox SavingCheckbox;
 
     private static final String s = "com.example.bodnrbenjamin.ecg1";
 
     private UsbEcgHAL ecg;
-    public int[][] RefreshedData;
     public CurveDrawer Ch1Drawer;
     public CurveDrawer Ch2Drawer;
     public CurveDrawer Ch3Drawer;
@@ -61,9 +62,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        /* Set up the UI */
         ConnectButtonObj    =   findViewById(R.id.ConncectButton);
         StartButtonObj      =   findViewById(R.id.StartButton);
         LoadButtonObj       =   findViewById(R.id.LoadButton);
+        SavingCheckbox      =   findViewById(R.id.checkBox);
 
         textView3           =   findViewById(R.id.textView3);
         textView4           =   findViewById(R.id.textView4);
@@ -74,19 +78,18 @@ public class MainActivity extends AppCompatActivity {
         DataCanvas3         =   findViewById(R.id.drawview3);
         DataCanvas4         =   findViewById(R.id.drawview4);
         DataCanvas5         =   findViewById(R.id.drawview5);
-        DataCanvas1.setBackgroundColor(Color.GREEN);
-        DataCanvas2.setBackgroundColor(Color.GREEN);
-        DataCanvas3.setBackgroundColor(Color.GREEN);
-        DataCanvas4.setBackgroundColor(Color.GREEN);
-        DataCanvas5.setBackgroundColor(Color.GREEN);
+        DataCanvas1.setBackgroundColor(Color.rgb(146, 146, 251));
+        DataCanvas2.setBackgroundColor(Color.rgb(146, 146, 251));
+        DataCanvas3.setBackgroundColor(Color.rgb(146, 146, 251));
+        DataCanvas4.setBackgroundColor(Color.rgb(146, 146, 251));
+        DataCanvas5.setBackgroundColor(Color.rgb(146, 146, 251));
 
-        RefreshedData = new int[5][2200];
-
+        /* Create a FileDriver object with a 200000 sample buffer */
         FileHandler = new FileDriver(this,200000);
 
+        /* Set the sizes for DrawViews */
         DisplayMetrics dm=new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(dm);
-
         DataCanvas1.getLayoutParams().width = dm.widthPixels*5/6;
         DataCanvas1.requestLayout();
         DataCanvas2.getLayoutParams().width = dm.widthPixels*5/6;
@@ -98,12 +101,15 @@ public class MainActivity extends AppCompatActivity {
         DataCanvas5.getLayoutParams().width = dm.widthPixels*5/6;
         DataCanvas5.requestLayout();
 
+        /* Create the Drawer objects */
         Ch1Drawer       =   new CurveDrawer(DataCanvas1);
         Ch1Drawer.t=textView4;
         Ch2Drawer       =   new CurveDrawer(DataCanvas2);
         Ch3Drawer       =   new CurveDrawer(DataCanvas3);
         Ch4Drawer       =   new CurveDrawer(DataCanvas4);
         Ch5Drawer       =   new CurveDrawer(DataCanvas5);
+
+        /* Create the handler of USB object */
         ecg             =   new UsbEcgHAL(this,s,0x2405,0xB, FileHandler);
         ecg.t2          =   textView4;
         ecg.setTextView(textView3);
@@ -129,8 +135,8 @@ public class MainActivity extends AppCompatActivity {
         }
         else /* Measure has to be started */
         {
-            FileHandler.Open();
-            ecg.StartDataReadThread(false);
+            if(SavingCheckbox.isChecked()) FileHandler.Open();
+            ecg.StartDataReadThread(SavingCheckbox.isChecked());
             StartButtonObj.setText(StopString);
             Started = true;
         }
